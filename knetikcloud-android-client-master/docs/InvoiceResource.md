@@ -1,0 +1,50 @@
+
+# InvoiceResource
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**billingAddress1** | **String** | Line one of the customer&#39;s billing address |  [optional]
+**billingAddress2** | **String** | Line two of the customer&#39;s billing address |  [optional]
+**billingCityName** | **String** | The city for the customer&#39;s billing address |  [optional]
+**billingCountryName** | **String** | The country for the customer&#39;s billing address |  [optional]
+**billingFullName** | **String** | The customer&#39;s name for the billing address |  [optional]
+**billingPostalCode** | **String** | The postal code for the customer&#39;s billing address |  [optional]
+**billingStateName** | **String** | The state for the customer&#39;s billing address |  [optional]
+**cartId** | **String** | The guid of the cart this invoice came from |  [optional]
+**createdDate** | **Long** | The date the invoice was created, unix timestamp in seconds |  [optional]
+**currency** | **String** | The code for the currency invoice prices are in |  [optional]
+**currentFulfillmentStatus** | **String** | The fulfillment status of the invoice |  [optional]
+**currentPaymentStatus** | **String** | The payment status of the invoice |  [optional]
+**discount** | **Double** | The amount of money saved through coupons |  [optional]
+**email** | **String** | The customer&#39;s email address |  [optional]
+**externalRef** | **String** | An external reference to filter on |  [optional]
+**fedTax** | **Double** | The amount of federal tax added |  [optional]
+**grandTotal** | **Double** | The final price of the invoice |  [optional]
+**id** | **Integer** | The id of the invoice |  [optional]
+**invoiceNumber** | **String** | A reference number for the invoice |  [optional]
+**items** | [**List&lt;InvoiceItemResource&gt;**](InvoiceItemResource.md) | A list of items within the invoice |  [optional]
+**namePrefix** | **String** | The customer&#39;s name prefix |  [optional]
+**orderNotes** | **String** | Notes about the order |  [optional]
+**parentInvoiceId** | **Integer** | The id of an invoice this is a child of |  [optional]
+**paymentMethodId** | **Integer** | The id of a saved payment method used to pay for the invoice |  [optional]
+**phone** | **String** | The customer&#39;s phone number |  [optional]
+**phoneNumber** | **String** | The customer&#39;s phone number |  [optional]
+**shipping** | **Double** | The shipping cost |  [optional]
+**shippingAddress1** | **String** | Line one of the customer&#39;s shipping address |  [optional]
+**shippingAddress2** | **String** | Line two of the customer&#39;s shipping address |  [optional]
+**shippingCityName** | **String** | The city for the customer&#39;s shipping address |  [optional]
+**shippingCountryName** | **String** | The country for the customer&#39;s shipping address |  [optional]
+**shippingFullName** | **String** | The customer&#39;s name for the shipping address |  [optional]
+**shippingPostalCode** | **String** | The postal code for the customer&#39;s shipping address |  [optional]
+**shippingStateName** | **String** | The state for the customer&#39;s shipping address |  [optional]
+**sort** | **Integer** | A number to use in sorting items. default 500. |  [optional]
+**stateTax** | **Double** | The amount of state tax added |  [optional]
+**subtotal** | **Double** | The sum price of all items before shipping, coupons and tax |  [optional]
+**updatedDate** | **Long** | The date the invoice was last updated, unix timestamp in seconds |  [optional]
+**user** | [**SimpleUserResource**](SimpleUserResource.md) | The owner of the invoice |  [optional]
+**vendorId** | **Integer** | The id of the vendor |  [optional]
+**vendorName** | **String** | The name of the invoice |  [optional]
+
+
+

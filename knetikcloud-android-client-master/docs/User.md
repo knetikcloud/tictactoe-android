@@ -1,0 +1,53 @@
+
+# User
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**additionalProperties** | [**Map&lt;String, Property&gt;**](Property.md) |  |  [optional]
+**address** | **String** |  |  [optional]
+**address2** | **String** |  |  [optional]
+**affiliate** | [**Affiliate**](Affiliate.md) |  |  [optional]
+**avatarUrl** | **String** |  |  [optional]
+**children** | [**List&lt;UserRelationship&gt;**](UserRelationship.md) |  |  [optional]
+**city** | **String** |  |  [optional]
+**country** | [**Country**](Country.md) |  |  [optional]
+**currency** | [**Currency**](Currency.md) |  |  [optional]
+**dateCreated** | **Long** |  |  [optional]
+**dateOfBirth** | **Long** |  |  [optional]
+**dateUpdated** | **Long** |  |  [optional]
+**description** | **String** |  |  [optional]
+**displayName** | **String** |  |  [optional]
+**email** | **String** |  |  [optional]
+**firstName** | **String** |  |  [optional]
+**fullname** | **String** |  |  [optional]
+**gender** | **String** |  |  [optional]
+**groups** | [**List&lt;GroupMember&gt;**](GroupMember.md) |  |  [optional]
+**guest** | **Boolean** |  |  [optional]
+**id** | **Integer** |  |  [optional]
+**inviteToken** | **String** |  |  [optional]
+**lang** | [**Language**](Language.md) |  |  [optional]
+**lastActivity** | **Long** |  |  [optional]
+**lastLogin** | **Long** |  |  [optional]
+**lastName** | **String** |  |  [optional]
+**lockoutAttempts** | **Integer** |  |  [optional]
+**lockoutDate** | **Long** |  |  [optional]
+**mobileNumber** | **String** |  |  [optional]
+**oldId** | **Integer** |  |  [optional]
+**parents** | [**List&lt;UserRelationship&gt;**](UserRelationship.md) |  |  [optional]
+**password** | **String** |  |  [optional]
+**postalCode** | **String** |  |  [optional]
+**propertiesString** | **String** |  |  [optional]
+**roles** | [**List&lt;Role&gt;**](Role.md) |  |  [optional]
+**state** | **String** |  |  [optional]
+**status** | **String** |  |  [optional]
+**tagStrings** | **List&lt;String&gt;** |  |  [optional]
+**tags** | [**List&lt;UserTag&gt;**](UserTag.md) |  |  [optional]
+**template** | **String** |  |  [optional]
+**timezone** | [**Timezone**](Timezone.md) |  |  [optional]
+**token** | **String** |  |  [optional]
+**typeHint** | **String** |  |  [optional]
+**username** | **String** |  |  [optional]
+
+
+
