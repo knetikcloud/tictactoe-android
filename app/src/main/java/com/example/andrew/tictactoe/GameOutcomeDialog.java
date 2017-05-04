@@ -17,13 +17,22 @@ public class GameOutcomeDialog extends DialogFragment {
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         String outcome = getArguments().getString("outcome");
+        final String username = getArguments().getString("username");
+        final String password = getArguments().getString("password");
+        final String adminToken = getArguments().getString("adminToken");
 
         if(outcome.equals("win")) {
             builder.setTitle("Congratulations!")
                     .setMessage("You won!")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putString("password", password);
+                            bundle.putString("adminToken", adminToken);
+
                             Intent intent = new Intent(getActivity(), MainMenu.class);
+                            intent.putExtras(bundle);
                             startActivity(intent);
                         }
                     });
@@ -33,7 +42,13 @@ public class GameOutcomeDialog extends DialogFragment {
                     .setMessage("You've lost")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putString("password", password);
+                            bundle.putString("adminToken", adminToken);
+
                             Intent intent = new Intent(getActivity(), MainMenu.class);
+                            intent.putExtras(bundle);
                             startActivity(intent);
                         }
                     });
@@ -43,7 +58,13 @@ public class GameOutcomeDialog extends DialogFragment {
                     .setMessage("It's a draw!")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putString("password", password);
+                            bundle.putString("adminToken", adminToken);
+
                             Intent intent = new Intent(getActivity(), MainMenu.class);
+                            intent.putExtras(bundle);
                             startActivity(intent);
                         }
                     });

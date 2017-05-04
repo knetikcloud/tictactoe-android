@@ -5,21 +5,32 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.knetikcloud.api.BRERuleEngineEventsApi;
+import com.knetikcloud.model.BreEvent;
+
+import java.util.Map;
 import java.util.Random;
 
 import static java.lang.Integer.parseInt;
 
 public class GameBoard extends AppCompatActivity {
 
-    Boolean gameOver = false;
     String currPlayer = "X";
-    int[][] winningCombos = {{0,1,2}, {3,4,5}, {6,7,8}, {0,3,6}, {1,4,7}, {2,5,8}, {0,4,8}, {2,4,6}};
+    Boolean gameOver = false;
     String[] squares = new String[9];
+    int[][] winningCombos = {{0,1,2}, {3,4,5}, {6,7,8}, {0,3,6}, {1,4,7}, {2,5,8}, {0,4,8}, {2,4,6}};
+    String username;
+    int userId;
+    String adminToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_board);
+        Bundle bundle = getIntent().getExtras();
+        username = bundle.getString("username");
+        userId = bundle.getInt("userId");
+        adminToken = bundle.getString("adminToken");
     }
 
     public void squareClick(View view) {
@@ -66,16 +77,46 @@ public class GameBoard extends AppCompatActivity {
         // Checks for a win or loss
         for (int i = 0; i < winningCombos.length; i++) {
             if (squares[winningCombos[i][0]] == value && squares[winningCombos[i][1]] == value && squares[winningCombos[i][2]] == value) {
-                // Win/Loss logic here
                 Bundle bundle = new Bundle();
-                if(value.equals("X"))
-                    bundle.putString("outcome","win");
-                else
+                bundle.putString("username", username);
+                bundle.putInt("userId", userId);
+                bundle.putString("adminToken", adminToken);
+
+                final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
+                gamePlayedEvent.setUserId(userId);
+                if(value.equals("X")) {
+                    bundle.putString("outcome", "win");
+                    gamePlayedEvent.setVictory(true);
+                }
+                else {
                     bundle.putString("outcome", "loss");
+                    gamePlayedEvent.setVictory(false);
+                }
                 GameOutcomeDialog dialog = new GameOutcomeDialog();
                 dialog.setArguments(bundle);
                 dialog.show(this.getSupportFragmentManager(), "dialog");
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
+                        apiInstance.setBasePath(getString(R.string.baseurl));
+
+                        BreEvent breEvent = new BreEvent();
+                        breEvent.setEventName("Game Played");
+                        breEvent.setParams(gamePlayedEvent);
+                        try {
+                            apiInstance.sendBREEvent(breEvent);
+                        }
+                        catch (Exception e) {
+                            System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+
                 reset();
+                return;
             }
         }
         // Checks for a draw
@@ -84,10 +125,14 @@ public class GameBoard extends AppCompatActivity {
                 if(i == squares.length - 1) {
                     Bundle bundle = new Bundle();
                     bundle.putString("outcome", "draw");
+                    bundle.putString("username", username);
+                    bundle.putInt("userId", userId);
+                    bundle.putString("adminToken", adminToken);
                     GameOutcomeDialog dialog = new GameOutcomeDialog();
                     dialog.setArguments(bundle);
                     dialog.show(this.getSupportFragmentManager(), "dialog");
                     reset();
+                    return;
                 }
             }
             else

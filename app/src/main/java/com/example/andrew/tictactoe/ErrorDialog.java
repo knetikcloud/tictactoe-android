@@ -23,6 +23,11 @@ public class ErrorDialog extends DialogFragment {
                     .setMessage("Unable to login. Please check your username and password and try again.")
                     .setPositiveButton("OK", null);
         }
+        else if(error.equals("register")) {
+            builder.setTitle("Error")
+                    .setMessage("Unable to register. Please make sure that all fields are filled out correctly.")
+                    .setPositiveButton("OK", null);
+        }
         return builder.create();
     }
 }
