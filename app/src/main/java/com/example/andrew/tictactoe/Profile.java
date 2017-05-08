@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class MainMenu extends AppCompatActivity {
+public class Profile extends AppCompatActivity {
     String username;
     int userId;
     String adminToken;
@@ -15,45 +15,30 @@ public class MainMenu extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_menu);
+        setContentView(R.layout.activity_profile);
 
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
         adminToken = bundle.getString("adminToken");
-        TextView welcomeLabel = (TextView) findViewById(R.id.welcomeLabel);
-        welcomeLabel.setText("Hi, "+username);
+
+        TextView profileHeader = (TextView) findViewById(R.id.profileHeader);
+        profileHeader.setText(username + "'s Profile");
 
         //TODO: add logic to retrieve avatar from UserResource
         //Placeholder for grabbing avatar from UserResource
-        ImageView imageView = (ImageView) findViewById(R.id.mainMenuAvatar);
+        ImageView imageView = (ImageView) findViewById(R.id.profileAvatar);
         imageView.setImageResource(R.drawable.ucf);
     }
 
-    public void newGame(View view) {
+    public void changeAvatar(View view) {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
         bundle.putString("adminToken", adminToken);
 
-        Intent intent = new Intent(this, GameBoard.class);
+        Intent intent = new Intent(this, Avatars.class);
         intent.putExtras(bundle);
-        startActivity(intent);
-    }
-
-    public void openProfile(View view) {
-        Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
-
-        Intent intent = new Intent(this, Profile.class);
-        intent.putExtras(bundle);
-        startActivity(intent);
-    }
-
-    public void logOut(View view) {
-        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 }

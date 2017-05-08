@@ -42,6 +42,7 @@ public class UserRegistration extends AppCompatActivity {
             public void run() {
                 UsersApi apiInstance = new UsersApi();
                 apiInstance.setBasePath(getString(R.string.baseurl));
+
                 UserResource userResource = new UserResource();
                 userResource.setUsername(username);
                 userResource.setPassword(password);
@@ -50,39 +51,17 @@ public class UserRegistration extends AppCompatActivity {
                     UserResource result = apiInstance.registerUser(userResource);
                     System.out.println(result);
 
-                    //Attempts to retrieve token for the new user
-                    AccessTokenApi apiInstance2 = new AccessTokenApi();
-                    apiInstance2.setBasePath(getString(R.string.baseurl));
-                    try {
-                        OAuth2Resource result2 = apiInstance2.getOAuthToken(getString(R.string.grant_type), getString(R.string.client_id),
-                                null, username, password);
-                        System.out.println("User token: " + result2.getAccessToken());
+                    userId = result.getId();
+                    System.out.println(userId);
 
-                        //Attempts to retrieve userId using the user's token
-                        UtilSecurityApi apiInstance3 = new UtilSecurityApi();
-                        apiInstance3.setBasePath(getString(R.string.baseurl));
-                        apiInstance3.addHeader("Authorization", "bearer " + result2.getAccessToken());
-                        try {
-                            TokenDetailsResource result3 = apiInstance3.getUserTokenDetails();
-                            System.out.println(result3);
-                            userId = result3.getUserId();
-                        }
-                        catch (ApiException e) {
-                            System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
-                            e.printStackTrace();
-                        }
-                    }
-                    catch (Exception e) {
-                        System.err.println("Exception when calling AccessTokenApi#getOAuthToken");
-                        e.printStackTrace();
-                    }
                     UserRegistration.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             registrationSuccess();
                         }
                     });
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     UserRegistration.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
