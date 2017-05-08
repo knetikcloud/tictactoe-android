@@ -27,7 +27,7 @@ public class UserRegistration extends AppCompatActivity {
         setContentView(R.layout.activity_user_registration);
         adminToken = getIntent().getExtras().getString("adminToken");
     }
-
+    //Called when "Register" button is clicked
     public void registerUser(View view) {
         EditText usernameField = (EditText) findViewById(R.id.username);
         EditText passwordField = (EditText) findViewById(R.id.password);
@@ -36,10 +36,10 @@ public class UserRegistration extends AppCompatActivity {
         password = passwordField.getText().toString();
         email = emailField.getText().toString();
 
+        //Attempts to register a new user using the inputted information
         new Thread(new Runnable() {
             @Override
             public void run() {
-
                 UsersApi apiInstance = new UsersApi();
                 apiInstance.setBasePath(getString(R.string.baseurl));
                 UserResource userResource = new UserResource();
@@ -50,6 +50,7 @@ public class UserRegistration extends AppCompatActivity {
                     UserResource result = apiInstance.registerUser(userResource);
                     System.out.println(result);
 
+                    //Attempts to retrieve token for the new user
                     AccessTokenApi apiInstance2 = new AccessTokenApi();
                     apiInstance2.setBasePath(getString(R.string.baseurl));
                     try {
@@ -57,9 +58,10 @@ public class UserRegistration extends AppCompatActivity {
                                 null, username, password);
                         System.out.println("User token: " + result2.getAccessToken());
 
+                        //Attempts to retrieve userId using the user's token
                         UtilSecurityApi apiInstance3 = new UtilSecurityApi();
                         apiInstance3.setBasePath(getString(R.string.baseurl));
-                        apiInstance3.addHeader("Authorization", result2.getAccessToken());
+                        apiInstance3.addHeader("Authorization", "bearer " + result2.getAccessToken());
                         try {
                             TokenDetailsResource result3 = apiInstance3.getUserTokenDetails();
                             System.out.println(result3);

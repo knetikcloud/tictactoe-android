@@ -101,6 +101,7 @@ public class GameBoard extends AppCompatActivity {
                     public void run() {
                         BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
                         apiInstance.setBasePath(getString(R.string.baseurl));
+                        apiInstance.addHeader("Authorization", "bearer " + adminToken);
 
                         BreEvent breEvent = new BreEvent();
                         breEvent.setEventName("Game Played");
@@ -114,7 +115,6 @@ public class GameBoard extends AppCompatActivity {
                         }
                     }
                 }).start();
-
                 reset();
                 return;
             }
@@ -128,9 +128,34 @@ public class GameBoard extends AppCompatActivity {
                     bundle.putString("username", username);
                     bundle.putInt("userId", userId);
                     bundle.putString("adminToken", adminToken);
+
+                    final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
+                    gamePlayedEvent.setUserId(userId);
+                    gamePlayedEvent.setVictory(false);
+
                     GameOutcomeDialog dialog = new GameOutcomeDialog();
                     dialog.setArguments(bundle);
                     dialog.show(this.getSupportFragmentManager(), "dialog");
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
+                            apiInstance.setBasePath(getString(R.string.baseurl));
+                            apiInstance.addHeader("Authorization", "bearer " + adminToken);
+
+                            BreEvent breEvent = new BreEvent();
+                            breEvent.setEventName("Game Played");
+                            breEvent.setParams(gamePlayedEvent);
+                            try {
+                                apiInstance.sendBREEvent(breEvent);
+                            }
+                            catch (Exception e) {
+                                System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
                     reset();
                     return;
                 }

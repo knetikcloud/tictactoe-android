@@ -34,6 +34,10 @@ public class MainMenu extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void achievements(View view) {
+
+    }
+
     public void logOut(View view) {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
