@@ -1,1 +1,1 @@
-include ':app', ':knetikcloud-android-client-master'
+include ':app'

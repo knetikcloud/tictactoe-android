@@ -20,6 +20,7 @@ public class GameOutcomeDialog extends DialogFragment {
         final String username = getArguments().getString("username");
         final String password = getArguments().getString("password");
         final String adminToken = getArguments().getString("adminToken");
+        final int userId = getArguments().getInt("userId");
 
         if(outcome.equals("win")) {
             builder.setTitle("Congratulations!")
@@ -30,6 +31,7 @@ public class GameOutcomeDialog extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putString("password", password);
                             bundle.putString("adminToken", adminToken);
+                            bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), MainMenu.class);
                             intent.putExtras(bundle);
@@ -46,6 +48,7 @@ public class GameOutcomeDialog extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putString("password", password);
                             bundle.putString("adminToken", adminToken);
+                            bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), MainMenu.class);
                             intent.putExtras(bundle);
@@ -62,6 +65,7 @@ public class GameOutcomeDialog extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putString("password", password);
                             bundle.putString("adminToken", adminToken);
+                            bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), MainMenu.class);
                             intent.putExtras(bundle);

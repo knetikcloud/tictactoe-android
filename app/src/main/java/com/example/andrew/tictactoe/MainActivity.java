@@ -1,19 +1,21 @@
 package com.example.andrew.tictactoe;
 
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import com.knetikcloud.api.AccessTokenApi;
 import com.knetikcloud.api.UtilSecurityApi;
-import com.knetikcloud.client.ApiException;
+import com.knetikcloud.client.ApiClient;
+import com.knetikcloud.client.Configuration;
+import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.OAuth2Resource;
 import com.knetikcloud.model.TokenDetailsResource;
 
 public class MainActivity extends AppCompatActivity {
     String adminToken;
+    String userToken;
     int userId;
     String username;
     String password;
@@ -27,8 +29,10 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                ApiClient defaultClient = Configuration.getDefaultApiClient();
+                defaultClient.setBasePath(getString(R.string.baseurl));
+
                 AccessTokenApi apiInstance = new AccessTokenApi();
-                apiInstance.setBasePath(getString(R.string.baseurl));
                 try {
                     OAuth2Resource result = apiInstance.getOAuthToken(getString(R.string.grant_type), getString(R.string.client_id),
                             null, getString(R.string.username), getString(R.string.password));
@@ -53,14 +57,31 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                ApiClient defaultClient = Configuration.getDefaultApiClient();
+                defaultClient.setBasePath(getString(R.string.baseurl));
+
                 AccessTokenApi apiInstance = new AccessTokenApi();
-                apiInstance.setBasePath(getString(R.string.baseurl));
                 try {
                     final OAuth2Resource result = apiInstance.getOAuthToken(getString(R.string.grant_type), getString(R.string.client_id),
                             null, username, password);
-                    System.out.println("User token: " + result.getAccessToken());
-                    getUserId(result.getAccessToken());
+                    userToken = result.getAccessToken();
+                    System.out.println("User token: " + userToken);
 
+                    // Configure OAuth2 access token for authorization: OAuth2
+                    OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
+                    OAuth2.setAccessToken(userToken);
+
+                    // Attempt to retrieve userID using the userToken
+                    UtilSecurityApi apiInstance2 = new UtilSecurityApi();
+                    try {
+                        TokenDetailsResource result2 = apiInstance2.getUserTokenDetails();
+                        userId = result2.getUserId();
+                        System.out.println("UserId: " + userId);
+                    }
+                    catch (Exception e) {
+                        System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
+                        e.printStackTrace();
+                    }
                     MainActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -80,21 +101,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
-    }
-    //Attempts to retrieve userId using the user's token
-    public void getUserId(String userToken) {
-        UtilSecurityApi apiInstance2 = new UtilSecurityApi();
-        apiInstance2.setBasePath(getString(R.string.baseurl));
-        apiInstance2.addHeader("Authorization", "bearer " + userToken);
-        try {
-            TokenDetailsResource result2 = apiInstance2.getUserTokenDetails();
-            userId = result2.getUserId();
-            System.out.println("UserId: " + userId);
-        }
-        catch (Exception e) {
-            System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
-            e.printStackTrace();
-        }
     }
 
     public void loginSuccess() {

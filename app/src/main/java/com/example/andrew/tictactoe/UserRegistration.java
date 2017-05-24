@@ -9,7 +9,11 @@ import android.widget.EditText;
 import com.knetikcloud.api.AccessTokenApi;
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.api.UtilSecurityApi;
+import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.client.ApiException;
+import com.knetikcloud.client.Configuration;
+import com.knetikcloud.client.auth.OAuth;
+import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.OAuth2Resource;
 import com.knetikcloud.model.Property;
 import com.knetikcloud.model.TokenDetailsResource;
@@ -44,15 +48,25 @@ public class UserRegistration extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                UsersApi apiInstance = new UsersApi();
-                apiInstance.setBasePath(getString(R.string.baseurl));
-                //apiInstance.addHeader("Authorization", "bearer " + adminToken);
+                ApiClient defaultClient = Configuration.getDefaultApiClient();
+                defaultClient.setBasePath(getString(R.string.baseurl));
+
+                // Configure OAuth2 access token for authorization: OAuth2
+                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
+                OAuth2.setAccessToken(adminToken);
 
                 UserResource userResource = new UserResource();
                 userResource.setUsername(username);
                 userResource.setPassword(password);
                 userResource.setEmail(email);
-                
+
+                // Setting the default avatar
+                ImageProperty imageProperty = new ImageProperty();
+                imageProperty.setType("image");
+                imageProperty.setUrl("http://i.imgur.com/7VgKD2j.jpg");
+                userResource.putAdditionalPropertiesItem("avatar", imageProperty);
+
+                UsersApi apiInstance = new UsersApi();
                 try {
                     UserResource result = apiInstance.registerUser(userResource);
                     System.out.println(result);

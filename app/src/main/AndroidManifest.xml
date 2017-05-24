@@ -24,7 +24,9 @@
         <activity android:name=".UserRegistration" />
         <activity android:name=".MainMenu" />
         <activity android:name=".Profile" />
-        <activity android:name=".Avatars"></activity>
+        <activity android:name=".Avatars" />
+        <activity android:name=".Achievements" />
+        <activity android:name=".Store"></activity>
     </application>
 
 </manifest>

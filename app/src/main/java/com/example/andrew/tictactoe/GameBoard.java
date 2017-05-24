@@ -6,6 +6,11 @@ import android.view.View;
 import android.widget.Button;
 
 import com.knetikcloud.api.BRERuleEngineEventsApi;
+import com.knetikcloud.api.GamificationLevelingApi;
+import com.knetikcloud.client.ApiClient;
+import com.knetikcloud.client.ApiException;
+import com.knetikcloud.client.Configuration;
+import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.BreEvent;
 
 import java.util.Map;
@@ -27,6 +32,7 @@ public class GameBoard extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_board);
+
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
@@ -73,7 +79,7 @@ public class GameBoard extends AppCompatActivity {
         currPlayer = "X";
     }
 
-    public void checkForWinner(String value) {
+    public void checkForWinner(final String value) {
         // Checks for a win or loss
         for (int i = 0; i < winningCombos.length; i++) {
             if (squares[winningCombos[i][0]] == value && squares[winningCombos[i][1]] == value && squares[winningCombos[i][2]] == value) {
@@ -84,6 +90,7 @@ public class GameBoard extends AppCompatActivity {
 
                 final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
                 gamePlayedEvent.setUserId(userId);
+
                 if(value.equals("X")) {
                     bundle.putString("outcome", "win");
                     gamePlayedEvent.setVictory(true);
@@ -99,19 +106,34 @@ public class GameBoard extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
-                        apiInstance.setBasePath(getString(R.string.baseurl));
-                        apiInstance.addHeader("Authorization", "bearer " + adminToken);
+                        ApiClient defaultClient = Configuration.getDefaultApiClient();
+                        defaultClient.setBasePath(getString(R.string.baseurl));
+
+                        // Configure OAuth2 access token for authorization: OAuth2
+                        OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
+                        OAuth2.setAccessToken(adminToken);
 
                         BreEvent breEvent = new BreEvent();
                         breEvent.setEventName("Game Played");
                         breEvent.setParams(gamePlayedEvent);
+
+                        BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
                         try {
                             apiInstance.sendBREEvent(breEvent);
+                            System.out.println("Game Played event fired for userId " + userId);
                         }
-                        catch (Exception e) {
+                        catch (ApiException e) {
                             System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
                             e.printStackTrace();
+                        }
+                        if(value.equals("X")) {
+                            GamificationLevelingApi apiInstance2 = new GamificationLevelingApi();
+                            try {
+                                apiInstance2.incrementProgress(userId, "TicTacToe", 1);
+                            } catch (ApiException e) {
+                                System.err.println("Exception when calling GamificationLevelingApi#incrementProgress");
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }).start();
@@ -140,13 +162,18 @@ public class GameBoard extends AppCompatActivity {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
-                            apiInstance.setBasePath(getString(R.string.baseurl));
-                            apiInstance.addHeader("Authorization", "bearer " + adminToken);
+                            ApiClient defaultClient = Configuration.getDefaultApiClient();
+                            defaultClient.setBasePath(getString(R.string.baseurl));
+
+                            // Configure OAuth2 access token for authorization: OAuth2
+                            OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
+                            OAuth2.setAccessToken(adminToken);
 
                             BreEvent breEvent = new BreEvent();
                             breEvent.setEventName("Game Played");
                             breEvent.setParams(gamePlayedEvent);
+
+                            BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
                             try {
                                 apiInstance.sendBREEvent(breEvent);
                             }
