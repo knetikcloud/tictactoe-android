@@ -1,5 +1,6 @@
 package com.example.andrew.tictactoe;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -7,11 +8,14 @@ import android.widget.Button;
 
 import com.knetikcloud.api.BRERuleEngineEventsApi;
 import com.knetikcloud.api.GamificationLevelingApi;
+import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.client.ApiException;
 import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.BreEvent;
+import com.knetikcloud.model.Property;
+import com.knetikcloud.model.UserResource;
 
 import java.util.Map;
 import java.util.Random;
@@ -20,13 +24,14 @@ import static java.lang.Integer.parseInt;
 
 public class GameBoard extends AppCompatActivity {
 
+    String adminToken;
     String currPlayer = "X";
     Boolean gameOver = false;
+    String gamePieceColor;
     String[] squares = new String[9];
-    int[][] winningCombos = {{0,1,2}, {3,4,5}, {6,7,8}, {0,3,6}, {1,4,7}, {2,5,8}, {0,4,8}, {2,4,6}};
-    String username;
     int userId;
-    String adminToken;
+    String username;
+    int[][] winningCombos = {{0,1,2}, {3,4,5}, {6,7,8}, {0,3,6}, {1,4,7}, {2,5,8}, {0,4,8}, {2,4,6}};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +42,36 @@ public class GameBoard extends AppCompatActivity {
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
         adminToken = bundle.getString("adminToken");
+
+        // Attempts to get the userResource
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ApiClient defaultClient = Configuration.getDefaultApiClient();
+                defaultClient.setBasePath(getString(R.string.baseurl));
+
+                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
+                OAuth2.setAccessToken(adminToken);
+
+                UsersApi apiInstance = new UsersApi();
+                try {
+                    UserResource result = apiInstance.getUser(Integer.toString(userId));
+                    System.out.println(result);
+
+                    //FIXME: Retrieve gamePieceColor from UserResource
+/*                    Map<String, Property> map = result.getAdditionalProperties();
+                    System.out.println("MAP: " + map);
+                    String gamePieceColor = map.get("gamePieceColor").toString();
+                    System.out.println("gamePieceColor: " + gamePieceColor);*/
+                } catch (ApiException e) {
+                    System.err.println("Exception when calling UsersApi#getUser");
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        //FIXME: Remove after fixing gamePieceColor retrieval
+        gamePieceColor = "#000000";
     }
 
     public void squareClick(View view) {
@@ -47,6 +82,7 @@ public class GameBoard extends AppCompatActivity {
 
         if(value.equals("")) {
             button.setText(currPlayer);
+            button.setTextColor(Color.parseColor(gamePieceColor));
             squares[index] = currPlayer;
         }
         else

@@ -6,6 +6,11 @@
     <string name="username">admin</string>
     <string name="password">8dS%ffs43@40Wdd</string>
     <string name="title_activity_achievements">Achievements</string>
+    <string name="black">#000000</string>
+    <string name="red">#cc0000</string>
+    <string name="blue">#005ce6</string>
+    <string name="yellow">#ffd700</string>
+    <string name="green">#009900</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

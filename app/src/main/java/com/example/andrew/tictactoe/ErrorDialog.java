@@ -28,6 +28,11 @@ public class ErrorDialog extends DialogFragment {
                     .setMessage("Unable to register. Please make sure that all fields are filled out correctly.")
                     .setPositiveButton("OK", null);
         }
+        else if(error.equals("insufficientFunds")) {
+            builder.setTitle("Insufficent Funds")
+                    .setMessage("You do not have enough TTD to purchase this item.")
+                    .setPositiveButton("OK", null);
+        }
         return builder.create();
     }
 }

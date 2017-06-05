@@ -1,6 +1,7 @@
 package com.example.andrew.tictactoe;
 
 import android.content.Intent;
+import android.support.annotation.RestrictTo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -121,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
         dialog.setArguments(bundle);
         dialog.show(this.getFragmentManager(), "dialog");
     }
+
+    public void facebookLogin(View view) {
+
+    }
+
     //Called when "Register" button is clicked
     public void openUserRegistration(View view) {
         Intent intent = new Intent(this, UserRegistration.class);

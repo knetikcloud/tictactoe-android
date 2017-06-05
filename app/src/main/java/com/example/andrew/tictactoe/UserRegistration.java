@@ -16,6 +16,7 @@ import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.OAuth2Resource;
 import com.knetikcloud.model.Property;
+import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.TokenDetailsResource;
 import com.knetikcloud.model.UserResource;
 
@@ -65,6 +66,12 @@ public class UserRegistration extends AppCompatActivity {
                 imageProperty.setType("image");
                 imageProperty.setUrl("http://i.imgur.com/7VgKD2j.jpg");
                 userResource.putAdditionalPropertiesItem("avatar", imageProperty);
+
+                //Setting the default gamePieceColor
+                TextProperty textProperty = new TextProperty();
+                textProperty.setType("text");
+                textProperty.setValue(getString(R.string.black));
+                userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
 
                 UsersApi apiInstance = new UsersApi();
                 try {

@@ -69,7 +69,6 @@ public class Achievements extends AppCompatActivity {
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
 
-        Long totalElements = result.getTotalElements();
         List<UserAchievementGroupResource> achievementGroupResources = result.getContent();
 
         for (UserAchievementGroupResource groupRsc : achievementGroupResources) {

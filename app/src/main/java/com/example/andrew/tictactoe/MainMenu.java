@@ -15,6 +15,7 @@ import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.client.ApiException;
 import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
+import com.knetikcloud.model.FileProperty;
 import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.OAuth2Resource;
 import com.knetikcloud.model.Property;
@@ -41,7 +42,7 @@ public class MainMenu extends AppCompatActivity {
         TextView welcomeLabel = (TextView) findViewById(R.id.welcomeLabel);
         welcomeLabel.setText("Hi, "+username);
 
-        // Attempts to get the userResource
+        // Attempts to retrieve the "avatar" additional property from the userResource
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -71,6 +72,7 @@ public class MainMenu extends AppCompatActivity {
             }
         }).start();
 
+        //FIXME: Remove after fixing avatar retrieval
         //Placeholder for grabbing avatar from UserResource
         ImageView imageView = (ImageView) findViewById(R.id.mainMenuAvatar);
         imageView.setImageResource(R.drawable.ucf);
@@ -134,7 +136,6 @@ public class MainMenu extends AppCompatActivity {
             }
             return mIcon11;
         }
-
         protected void onPostExecute(Bitmap result) {
             bmImage.setImageBitmap(result);
         }

@@ -15,9 +15,9 @@ import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.UserResource;
 
 public class Avatars extends AppCompatActivity {
-    String username;
-    int userId;
     String adminToken;
+    int userId;
+    String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +30,7 @@ public class Avatars extends AppCompatActivity {
         adminToken = bundle.getString("adminToken");
     }
 
+    // Changes the additional property "avatar" in the userResource
     public void avatarSelected(final View view) {
 
         new Thread(new Runnable() {
