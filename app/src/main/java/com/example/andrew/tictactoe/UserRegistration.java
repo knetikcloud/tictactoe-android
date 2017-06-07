@@ -6,22 +6,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
-import com.knetikcloud.api.AccessTokenApi;
 import com.knetikcloud.api.UsersApi;
-import com.knetikcloud.api.UtilSecurityApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
 import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.ImageProperty;
-import com.knetikcloud.model.OAuth2Resource;
-import com.knetikcloud.model.Property;
 import com.knetikcloud.model.TextProperty;
-import com.knetikcloud.model.TokenDetailsResource;
 import com.knetikcloud.model.UserResource;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class UserRegistration extends AppCompatActivity {
     String adminToken;
@@ -115,8 +106,8 @@ public class UserRegistration extends AppCompatActivity {
 
     public void registrationError() {
         Bundle bundle = new Bundle();
-        bundle.putString("error", "register");
-        ErrorDialog dialog = new ErrorDialog();
+        bundle.putString("argument", "register");
+        ResponseDialogs dialog = new ResponseDialogs();
         dialog.setArguments(bundle);
         dialog.show(this.getFragmentManager(), "dialog");
     }

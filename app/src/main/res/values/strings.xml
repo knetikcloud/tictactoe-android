@@ -5,6 +5,8 @@
     <string name="grant_type">password</string>
     <string name="username">admin</string>
     <string name="password">8dS%ffs43@40Wdd</string>
+    <string name="facebook_app_id">1524764117595171</string>
+    <string name="fb_login_protocol_scheme">fb1524764117595171</string>
     <string name="title_activity_achievements">Achievements</string>
     <string name="black">#000000</string>
     <string name="red">#cc0000</string>

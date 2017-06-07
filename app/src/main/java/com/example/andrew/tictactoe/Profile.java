@@ -1,27 +1,25 @@
 package com.example.andrew.tictactoe;
 
 import android.content.Intent;
-import android.support.annotation.RestrictTo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.knetikcloud.api.GamificationLevelingApi;
+import com.knetikcloud.api.SocialFacebookApi;
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.api.UsersInventoryApi;
 import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.client.ApiException;
 import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
+import com.knetikcloud.model.FacebookToken;
 import com.knetikcloud.model.PageResourceUserInventoryResource;
 import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.UserInventoryResource;
@@ -168,7 +166,6 @@ public class Profile extends AppCompatActivity {
             } // to close the onItemSelected
             public void onNothingSelected(AdapterView<?> parent)
             {
-
             }
         });
     }
@@ -225,5 +222,58 @@ public class Profile extends AppCompatActivity {
         Intent intent = new Intent(this, Achievements.class);
         intent.putExtras(bundle);
         startActivity(intent);
+    }
+
+    public void linkFacebook(final String facebookAccessToken) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ApiClient defaultClient = Configuration.getDefaultApiClient();
+
+                // Configure OAuth2 access token for authorization: OAuth2
+                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
+                OAuth2.setAccessToken(adminToken);
+
+                SocialFacebookApi apiInstance = new SocialFacebookApi();
+                FacebookToken facebookToken = new FacebookToken();
+                facebookToken.setAccessToken(facebookAccessToken);
+                try {
+                    apiInstance.linkAccounts(facebookToken);
+
+                    Profile.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            linkFacebookSuccess();
+                        }
+                    });
+                } catch (ApiException e) {
+                    System.err.println("Exception when calling SocialFacebookApi#linkAccounts");
+                    e.printStackTrace();
+
+                    Profile.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            linkFacebookError();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    public void linkFacebookSuccess() {
+        Bundle bundle = new Bundle();
+        bundle.putString("argument", "facebookSuccess");
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
+    }
+
+    public void linkFacebookError() {
+        Bundle bundle = new Bundle();
+        bundle.putString("argument", "facebookError");
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
     }
 }

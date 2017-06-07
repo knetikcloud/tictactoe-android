@@ -264,10 +264,21 @@ public class Store extends AppCompatActivity {
     // Called when a user attempts to purchase an item they cannot afford
     public void insufficientFunds() {
         Bundle bundle = new Bundle();
-        bundle.putString("error", "insufficientFunds");
-        ErrorDialog dialog = new ErrorDialog();
+        bundle.putString("argument", "insufficientFunds");
+        ResponseDialogs dialog = new ResponseDialogs();
         dialog.setArguments(bundle);
         dialog.show(this.getFragmentManager(), "dialog");
         return;
+    }
+
+    public void purchaseCurrency(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, Currency.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }
