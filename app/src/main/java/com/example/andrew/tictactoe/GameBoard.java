@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.knetikcloud.api.ActivitiesApi;
 import com.knetikcloud.api.BRERuleEngineEventsApi;
 import com.knetikcloud.api.GamificationLevelingApi;
 import com.knetikcloud.api.UsersApi;
@@ -13,6 +14,8 @@ import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.client.ApiException;
 import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
+import com.knetikcloud.model.AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings;
+import com.knetikcloud.model.ActivityOccurrenceResults;
 import com.knetikcloud.model.BreEvent;
 import com.knetikcloud.model.Property;
 import com.knetikcloud.model.UserResource;
@@ -25,6 +28,7 @@ import static java.lang.Integer.parseInt;
 public class GameBoard extends AppCompatActivity {
 
     String adminToken;
+    Long activityOccurrenceId;
     String currPlayer = "X";
     Boolean gameOver = false;
     String gamePieceColor;
@@ -65,6 +69,30 @@ public class GameBoard extends AppCompatActivity {
                     System.out.println("gamePieceColor: " + gamePieceColor);*/
                 } catch (ApiException e) {
                     System.err.println("Exception when calling UsersApi#getUser");
+                    e.printStackTrace();
+                }
+
+                // Creating a new activity occurrence
+                ActivitiesApi apiInstance2 = new ActivitiesApi();
+                Boolean test = false; // Boolean | if true, indicates that the occurrence should NOT be created. This can be used to test for eligibility and valid settings
+                AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings activityOccurrenceResource = new AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings(); // AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings | The activity occurrence object
+                activityOccurrenceResource.setActivityId(3L);
+                activityOccurrenceResource.setChallengeActivityId(8L);
+                activityOccurrenceResource.setEventId(1L);
+                try {
+                    AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings result = apiInstance2.createActivityOccurrence(test, activityOccurrenceResource);
+                    System.out.println(result);
+                    activityOccurrenceId = result.getId();
+
+                    // Changing status of activity occurrence to "PLAYING"
+                    try {
+                        apiInstance2.updateActivityOccurrence(activityOccurrenceId, "PLAYING");
+                    } catch (ApiException e) {
+                        System.err.println("Exception when calling ActivitiesApi#updateActivityOccurrence");
+                        e.printStackTrace();
+                    }
+                } catch (ApiException e) {
+                    System.err.println("Exception when calling ActivitiesApi#createActivityOccurrence");
                     e.printStackTrace();
                 }
             }
@@ -162,10 +190,22 @@ public class GameBoard extends AppCompatActivity {
                             System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
                             e.printStackTrace();
                         }
+
+                        // Change status of activity occurrence to "FINISHED"
+                        ActivitiesApi apiInstance2 = new ActivitiesApi();
+                        ActivityOccurrenceResults activityOccurrenceResults = new ActivityOccurrenceResults(); // ActivityOccurrenceResults | The activity occurrence object
+                        try {
+                            ActivityOccurrenceResults result = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
+                            System.out.println(result);
+                        } catch (ApiException e) {
+                            System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
+                            e.printStackTrace();
+                        }
+
                         if(value.equals("X")) {
-                            GamificationLevelingApi apiInstance2 = new GamificationLevelingApi();
+                            GamificationLevelingApi apiInstance3 = new GamificationLevelingApi();
                             try {
-                                apiInstance2.incrementProgress(userId, "TicTacToe", 1);
+                                apiInstance3.incrementProgress(userId, "TicTacToe", 1);
                             } catch (ApiException e) {
                                 System.err.println("Exception when calling GamificationLevelingApi#incrementProgress");
                                 e.printStackTrace();
@@ -215,6 +255,17 @@ public class GameBoard extends AppCompatActivity {
                             }
                             catch (Exception e) {
                                 System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
+                                e.printStackTrace();
+                            }
+
+                            // Change status of activity occurrence to "FINISHED"
+                            ActivitiesApi apiInstance2 = new ActivitiesApi();
+                            ActivityOccurrenceResults activityOccurrenceResults = new ActivityOccurrenceResults(); // ActivityOccurrenceResults | The activity occurrence object
+                            try {
+                                ActivityOccurrenceResults result = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
+                                System.out.println(result);
+                            } catch (ApiException e) {
+                                System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
                                 e.printStackTrace();
                             }
                         }
