@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.andrew.tictactoe">
+    package="com.myapp.andrew.tictactoe">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -14,21 +14,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name="com.myapp.andrew.tictactoe.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GameBoard" />
-        <activity android:name=".UserRegistration" />
-        <activity android:name=".MainMenu" />
-        <activity android:name=".Profile" />
-        <activity android:name=".Avatars" />
-        <activity android:name=".Achievements" />
-        <activity android:name=".Store" />
-        <activity android:name=".Currency"></activity>
+        <activity android:name="com.myapp.andrew.tictactoe.GameBoard" />
+        <activity android:name="com.myapp.andrew.tictactoe.UserRegistration" />
+        <activity android:name="com.myapp.andrew.tictactoe.MainMenu" />
+        <activity android:name="com.myapp.andrew.tictactoe.Profile" />
+        <activity android:name="com.myapp.andrew.tictactoe.Avatars" />
+        <activity android:name="com.myapp.andrew.tictactoe.Achievements" />
+        <activity android:name="com.myapp.andrew.tictactoe.Store" />
+        <activity android:name="com.myapp.andrew.tictactoe.Currency"></activity>
 
         <meta-data android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id"/>

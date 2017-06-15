@@ -1,4 +1,4 @@
-package com.example.andrew.tictactoe;
+package com.myapp.andrew.tictactoe;
 
 /**
  * Created by Andrew on 5/3/2017.

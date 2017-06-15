@@ -1,4 +1,4 @@
-package com.example.andrew.tictactoe;
+package com.myapp.andrew.tictactoe;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -15,15 +15,9 @@ import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.client.ApiException;
 import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
-import com.knetikcloud.model.FileProperty;
-import com.knetikcloud.model.ImageProperty;
-import com.knetikcloud.model.OAuth2Resource;
-import com.knetikcloud.model.Property;
 import com.knetikcloud.model.UserResource;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainMenu extends AppCompatActivity {
     String username;

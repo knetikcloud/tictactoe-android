@@ -1,4 +1,4 @@
-package com.example.andrew.tictactoe;
+package com.myapp.andrew.tictactoe;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +11,13 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.knetikcloud.api.GamificationLevelingApi;
 import com.knetikcloud.api.SocialFacebookApi;
 import com.knetikcloud.api.UsersApi;
@@ -34,6 +41,26 @@ public class Profile extends AppCompatActivity {
     int userId;
     String username;
 
+    private CallbackManager callbackManager;
+    String facebookAccessToken = null;
+
+    //Facebook login button
+    private FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
+        @Override
+        public void onSuccess(LoginResult loginResult) {
+            if(facebookAccessToken != null)
+                linkFacebook(facebookAccessToken);
+        }
+        @Override
+        public void onCancel() {
+
+        }
+        @Override
+        public void onError(FacebookException e) {
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +78,27 @@ public class Profile extends AppCompatActivity {
         //Placeholder for grabbing avatar from UserResource
         ImageView imageView = (ImageView) findViewById(R.id.profileAvatar);
         imageView.setImageResource(R.drawable.ucf);
+
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        callbackManager = CallbackManager.Factory.create();
+        LoginButton loginButton = (LoginButton)findViewById(R.id.login_button);
+        callback = new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                facebookAccessToken = loginResult.getAccessToken().getToken();
+                linkFacebook(facebookAccessToken);
+            }
+
+            @Override
+            public void onCancel() {
+            }
+
+            @Override
+            public void onError(FacebookException e) {
+            }
+        };
+        loginButton.setReadPermissions("user_friends");
+        loginButton.registerCallback(callbackManager, callback);
 
         new Thread(new Runnable() {
             @Override
@@ -259,6 +307,31 @@ public class Profile extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(facebookAccessToken != null)
+            linkFacebook(facebookAccessToken);
+    }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+    }
+
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int responseCode, Intent intent) {
+        super.onActivityResult(requestCode, responseCode, intent);
+        //Facebook login
+        callbackManager.onActivityResult(requestCode, responseCode, intent);
+
     }
 
     public void linkFacebookSuccess() {

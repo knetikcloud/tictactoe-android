@@ -1,4 +1,4 @@
-package com.example.andrew.tictactoe;
+package com.myapp.andrew.tictactoe;
 
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
@@ -17,10 +17,8 @@ import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings;
 import com.knetikcloud.model.ActivityOccurrenceResults;
 import com.knetikcloud.model.BreEvent;
-import com.knetikcloud.model.Property;
 import com.knetikcloud.model.UserResource;
 
-import java.util.Map;
 import java.util.Random;
 
 import static java.lang.Integer.parseInt;

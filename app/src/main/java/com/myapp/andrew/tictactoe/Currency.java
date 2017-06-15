@@ -1,4 +1,4 @@
-package com.example.andrew.tictactoe;
+package com.myapp.andrew.tictactoe;
 
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -25,7 +25,9 @@ import com.knetikcloud.model.CartItemRequest;
 import com.knetikcloud.model.GooglePaymentRequest;
 import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
-import com.knetikcloud.model.PayBySavedMethodRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -167,6 +169,21 @@ public class Currency extends AppCompatActivity {
                         try {
                             Integer result = apiInstance.handleGooglePayment(request);
                             System.out.println(result);
+
+                            // Attempts to get purchaseToken from purchaseData and consume the purchase
+                            try {
+                                JSONObject jo = new JSONObject(purchaseData);
+                                String purchaseToken = jo.getString("purchaseToken");
+                                try {
+                                    int response = mService.consumePurchase(3, getPackageName(), purchaseToken);
+                                } catch (RemoteException e) {
+                                    System.err.println("Exception when calling IInAppBillingService#consumePurchase");
+                                    e.printStackTrace();
+                                }
+                            } catch (JSONException e) {
+                                System.err.println("Exception when parsing JSONObject");
+                                e.printStackTrace();
+                            }
                         } catch (ApiException e) {
                             System.err.println("Exception when calling PaymentsGoogleApi#handleGooglePayment");
                             e.printStackTrace();

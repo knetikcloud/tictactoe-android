@@ -1,4 +1,4 @@
-package com.example.andrew.tictactoe;
+package com.myapp.andrew.tictactoe;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
