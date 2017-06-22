@@ -44,6 +44,22 @@ public class Profile extends AppCompatActivity {
     private CallbackManager callbackManager;
     String facebookAccessToken = null;
 
+    // Setting the back button to always open the main menu
+    @Override
+    public void onBackPressed()
+    {
+        super.onBackPressed();
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, MainMenu.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+        finish();
+    }
+
     //Facebook login button
     private FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
         @Override
@@ -250,28 +266,6 @@ public class Profile extends AppCompatActivity {
         }).start();
     }
 
-    public void changeAvatar(View view) {
-        Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
-
-        Intent intent = new Intent(this, Avatars.class);
-        intent.putExtras(bundle);
-        startActivity(intent);
-    }
-
-    public void openAchievements(View view) {
-        Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
-
-        Intent intent = new Intent(this, Achievements.class);
-        intent.putExtras(bundle);
-        startActivity(intent);
-    }
-
     public void linkFacebook(final String facebookAccessToken) {
         new Thread(new Runnable() {
             @Override
@@ -348,5 +342,38 @@ public class Profile extends AppCompatActivity {
         ResponseDialogs dialog = new ResponseDialogs();
         dialog.setArguments(bundle);
         dialog.show(this.getFragmentManager(), "dialog");
+    }
+
+    public void changeAvatar(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, Avatars.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
+
+    public void openAchievements(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, Achievements.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
+
+    public void manageSubscriptions(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, Subscriptions.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }

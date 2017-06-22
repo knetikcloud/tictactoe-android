@@ -18,7 +18,6 @@ public class GameOutcomeDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         String outcome = getArguments().getString("outcome");
         final String username = getArguments().getString("username");
-        final String password = getArguments().getString("password");
         final String adminToken = getArguments().getString("adminToken");
         final int userId = getArguments().getInt("userId");
 
@@ -29,7 +28,6 @@ public class GameOutcomeDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("password", password);
                             bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
@@ -46,7 +44,6 @@ public class GameOutcomeDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("password", password);
                             bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
@@ -63,7 +60,6 @@ public class GameOutcomeDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("password", password);
                             bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 

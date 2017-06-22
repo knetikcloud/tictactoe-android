@@ -13,6 +13,9 @@
     <string name="blue">#005ce6</string>
     <string name="yellow">#ffd700</string>
     <string name="green">#009900</string>
+    <string name="vipInitialSku">VIPMEMBERS-VIPMEMBERS-INITIAL-MQWHWM</string>
+    <string name="vipRecurringSku">VIPMEMBERS-VIPMEMBERS-RECURRING-NKBGVD</string>
+    <string name="knetikStripeTestPublishableKey">pk_test_hgn4SJemz8INvPManIBZZBeL</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

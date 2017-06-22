@@ -24,6 +24,13 @@ public class MainMenu extends AppCompatActivity {
     int userId;
     String adminToken;
 
+    // Setting the back button to always open the main menu
+    @Override
+    public void onBackPressed()
+    {
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

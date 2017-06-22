@@ -34,6 +34,22 @@ public class Store extends AppCompatActivity {
     int userId;
     String username;
 
+    // Setting the back button to always open the main menu
+    @Override
+    public void onBackPressed()
+    {
+        super.onBackPressed();
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, MainMenu.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+        finish();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -256,7 +272,7 @@ public class Store extends AppCompatActivity {
         bundle.putInt("userId", userId);
         bundle.putString("adminToken", adminToken);
 
-        Intent intent = new Intent(this, Profile.class);
+        Intent intent = new Intent(this, Store.class);
         intent.putExtras(bundle);
         startActivity(intent);
     }
