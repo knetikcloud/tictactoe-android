@@ -85,7 +85,7 @@ public class Store extends AppCompatActivity {
                 // Attempts to retrieve ID of user's payment method
                 PaymentsApi apiInstance2 = new PaymentsApi();
                 try {
-                    List<PaymentMethodResource> result = apiInstance2.getPaymentMethods(userId, null, null, null);
+                    List<PaymentMethodResource> result = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
                     System.out.println(result);
                     paymentMethodId = result.get(0).getPaymentMethodType().getId();
                 } catch (ApiException e) {

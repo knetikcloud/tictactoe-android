@@ -275,7 +275,7 @@ public class Subscriptions extends AppCompatActivity {
                                             // Checking if the user already has a payment method for Stripe
                                             PaymentsApi apiInstance = new PaymentsApi();
                                             try {
-                                                List<PaymentMethodResource> result = apiInstance.getPaymentMethods(userId, null, null, null);
+                                                List<PaymentMethodResource> result = apiInstance.getPaymentMethods(userId, null, null, null, null, null, null, null);
                                                 System.out.println(result);
 
                                                 for(PaymentMethodResource rsc : result) {
