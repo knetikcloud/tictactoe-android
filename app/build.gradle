@@ -42,7 +42,6 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile files('libs/knetikcloud-android-client2-3.0.6.jar')
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
@@ -50,8 +49,11 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile 'com.stripe:stripe-android:4.1.1'
-    compile 'javax.ws.rs:jsr311-api:0.10'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.8.4'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.8.4'
-    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.26-b04'
+    compile files('libs/knetikcloud-android-client2-3.0.6.jar')
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25'
+    compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25'
+    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.25'
+
 }
