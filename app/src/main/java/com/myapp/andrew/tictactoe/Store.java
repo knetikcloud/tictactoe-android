@@ -87,6 +87,7 @@ public class Store extends AppCompatActivity {
                 try {
                     List<PaymentMethodResource> result = apiInstance2.getPaymentMethods(userId, null, null, null);
                     System.out.println(result);
+
                     for(PaymentMethodResource rsc : result) {
                         if(rsc.getPaymentMethodType().getName().equalsIgnoreCase("Wallet")) {
                             paymentMethodId = rsc.getPaymentMethodType().getId();

@@ -63,7 +63,7 @@ public class GameBoard extends AppCompatActivity {
                     System.out.println(result);
 
                     //FIXME: Retrieve gamePieceColor from UserResource
-        /*                    Map<String, Property> map = result.getAdditionalProperties();
+        /*          Map<String, Property> map = result.getAdditionalProperties();
                     System.out.println("MAP: " + map);
                     String gamePieceColor = map.get("gamePieceColor").toString();
                     System.out.println("gamePieceColor: " + gamePieceColor);*/
@@ -85,7 +85,7 @@ public class GameBoard extends AppCompatActivity {
                     activityOccurrenceId = result.getId();
 
                     // Changing status of activity occurrence to "PLAYING"
-                        try {
+                    try {
                         apiInstance2.updateActivityOccurrence(activityOccurrenceId, "PLAYING");
                     } catch (ApiException e) {
                         System.err.println("Exception when calling ActivitiesApi#updateActivityOccurrence");
