@@ -26,6 +26,7 @@ import com.knetikcloud.model.SimpleWallet;
 import com.knetikcloud.model.UserInventoryResource;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Store extends AppCompatActivity {
     String adminToken;
@@ -254,6 +255,13 @@ public class Store extends AppCompatActivity {
                             request.setPaymentMethod(paymentMethodId);
                             try {
                                 apiInstance4.payInvoice(invoiceId, request);
+
+                                Store.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        reloadStore();
+                                    }
+                                });
                             } catch (ApiException e) {
                                 System.err.println("Exception when calling InvoicesApi#payInvoice");
                                 e.printStackTrace();
@@ -273,6 +281,17 @@ public class Store extends AppCompatActivity {
             }
         }).start();
 
+        /*Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("adminToken", adminToken);
+
+        Intent intent = new Intent(this, Store.class);
+        intent.putExtras(bundle);
+        startActivity(intent);*/
+    }
+
+    public void reloadStore() {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
