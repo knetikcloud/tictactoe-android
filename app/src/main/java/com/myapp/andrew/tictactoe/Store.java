@@ -13,8 +13,6 @@ import com.knetikcloud.api.PaymentsWalletsApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
 import com.knetikcloud.api.UsersInventoryApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
 import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.CartItemRequest;
 import com.knetikcloud.model.InvoiceCreateRequest;
@@ -25,11 +23,14 @@ import com.knetikcloud.model.PaymentMethodResource;
 import com.knetikcloud.model.SimpleWallet;
 import com.knetikcloud.model.UserInventoryResource;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import retrofit2.Call;
+import retrofit2.Response;
+
 public class Store extends AppCompatActivity {
-    String adminToken;
     Double currentBalance;
     int paymentMethodId;
     int userId;
@@ -43,7 +44,6 @@ public class Store extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, MainMenu.class);
         intent.putExtras(bundle);
@@ -59,61 +59,58 @@ public class Store extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
-
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                 // Attempts to retrieve balance of TTD in user's wallet
-                PaymentsWalletsApi apiInstance = new PaymentsWalletsApi();
+                PaymentsWalletsApi apiInstance = client.createService(PaymentsWalletsApi.class);
                 String currencyCode = "TTD"; // TicTacDollars
                 try {
-                    SimpleWallet result = apiInstance.getUserWallet(userId, currencyCode);
-                    System.out.println(result);
-                    currentBalance = result.getBalance();
-                } catch (ApiException e) {
+                    Call<SimpleWallet> call = apiInstance.getUserWallet(userId, currencyCode);
+                    Response<SimpleWallet> result = call.execute();
+                    System.out.println(result.body());
+                    currentBalance = result.body().getBalance();
+                } catch (IOException e) {
                     System.err.println("Exception when calling PaymentsWalletsApi#getUserWallet");
                     e.printStackTrace();
                 }
 
                 // Attempts to retrieve ID of user's payment method
-                PaymentsApi apiInstance2 = new PaymentsApi();
+                PaymentsApi apiInstance2 = client.createService(PaymentsApi.class);
                 try {
-                    List<PaymentMethodResource> result = apiInstance2.getPaymentMethods(userId, null, null, null);
-                    System.out.println(result);
+                    Call<List<PaymentMethodResource>> call = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
+                    Response<List<PaymentMethodResource>> result = call.execute();
+                    System.out.println(result.body());
 
-                    for(PaymentMethodResource rsc : result) {
+                    for(PaymentMethodResource rsc : result.body()) {
                         if(rsc.getPaymentMethodType().getName().equalsIgnoreCase("Wallet")) {
                             paymentMethodId = rsc.getPaymentMethodType().getId();
                             break;
                         }
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling PaymentsApi#getPaymentMethods");
                     e.printStackTrace();
                 }
 
                 // Attempts to retrieve user's inventories
-                UsersInventoryApi apiInstance3 = new UsersInventoryApi();
+                UsersInventoryApi apiInstance3 = client.createService(UsersInventoryApi.class);
                 Boolean inactive = false; // If true, accepts inactive user inventories
                 try {
-                    final PageResourceUserInventoryResource result = apiInstance3.getUserInventories(userId, inactive, null, null, null, null, null, null, null);
-                    System.out.println(result);
+                    Call<PageResourceUserInventoryResource> call = apiInstance3.getUserInventories(userId, inactive, null, null, null, null, null, null, null);
+                    final Response<PageResourceUserInventoryResource> result = call.execute();
+                    System.out.println(result.body());
 
                     Store.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            initializeStore(currentBalance, result);
+                            initializeStore(currentBalance, result.body());
                         }
                     });
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling UsersInventoryApi#getUserInventories");
                     e.printStackTrace();
                 }
@@ -218,43 +215,41 @@ public class Store extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
-
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                 // Creates a new shopping cart
-                StoreShoppingCartsApi apiInstance = new StoreShoppingCartsApi();
+                StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
                 String currencyCode = "TTD"; // TicTacDollars
                 try {
-                    String cartId = apiInstance.createCart(userId, currencyCode);
+                    Call<String> call = apiInstance.createCart(userId, currencyCode);
+                    Response<String> result = call.execute();
+                    String cartId = result.body();
                     System.out.println("Cart ID: " + cartId);
 
                     // Adds selected item to the cart
-                    StoreShoppingCartsApi apiInstance2 = new StoreShoppingCartsApi();
                     CartItemRequest cartItemRequest = new CartItemRequest();
                     cartItemRequest.setCatalogSku(button.getTag().toString());
                     cartItemRequest.setQuantity(1);
                     try {
-                        apiInstance.addItemToCart(cartId, cartItemRequest);
+                        Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
+                        Response result2 = call2.execute();
 
                         // Creates an invoice for the cart
-                        InvoicesApi apiInstance3 = new InvoicesApi();
+                        InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
                         InvoiceCreateRequest req = new InvoiceCreateRequest();
                         req.setCartGuid(cartId);
                         try {
-                            List<InvoiceResource> result = apiInstance3.createInvoice(req);
-                            System.out.println(result);
-                            int invoiceId = result.get(0).getId();
+                            Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
+                            Response<List<InvoiceResource>> result3 = call3.execute();
+                            System.out.println(result3.body());
+                            int invoiceId = result3.body().get(0).getId();
 
                             // Paying for the invoice
-                            InvoicesApi apiInstance4 = new InvoicesApi();
                             PayBySavedMethodRequest request = new PayBySavedMethodRequest();
                             request.setPaymentMethod(paymentMethodId);
                             try {
-                                apiInstance4.payInvoice(invoiceId, request);
+                                Call call4 = invoicesApi.payInvoice(invoiceId, request);
+                                Response result4 = call4.execute();
 
                                 Store.this.runOnUiThread(new Runnable() {
                                     @Override
@@ -262,40 +257,30 @@ public class Store extends AppCompatActivity {
                                         reloadStore();
                                     }
                                 });
-                            } catch (ApiException e) {
+                            } catch (IOException e) {
                                 System.err.println("Exception when calling InvoicesApi#payInvoice");
                                 e.printStackTrace();
                             }
-                        } catch (ApiException e) {
+                        } catch (IOException e) {
                             System.err.println("Exception when calling InvoicesApi#createInvoice");
                             e.printStackTrace();
                         }
-                    } catch (ApiException e) {
+                    } catch (IOException e) {
                         System.err.println("Exception when calling StoreShoppingCartsApi#addItemToCart");
                         e.printStackTrace();
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
                     e.printStackTrace();
                 }
             }
         }).start();
-
-        /*Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
-
-        Intent intent = new Intent(this, Store.class);
-        intent.putExtras(bundle);
-        startActivity(intent);*/
     }
 
     public void reloadStore() {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, Store.class);
         intent.putExtras(bundle);
@@ -316,7 +301,6 @@ public class Store extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, Currency.class);
         intent.putExtras(bundle);

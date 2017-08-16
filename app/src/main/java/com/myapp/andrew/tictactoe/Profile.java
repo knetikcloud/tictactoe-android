@@ -1,6 +1,7 @@
 package com.myapp.andrew.tictactoe;
 
 import android.content.Intent;
+
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -23,21 +24,27 @@ import com.knetikcloud.api.SocialFacebookApi;
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.api.UsersInventoryApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.FacebookToken;
+import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.PageResourceUserInventoryResource;
+import com.knetikcloud.model.Property;
 import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.UserInventoryResource;
 import com.knetikcloud.model.UserLevelingResource;
 import com.knetikcloud.model.UserResource;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import io.swagger.annotations.Api;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class Profile extends AppCompatActivity {
-    String adminToken;
+    String colorLiteral;
+    String gamePieceColor;
     int userId;
     String username;
 
@@ -52,7 +59,6 @@ public class Profile extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, MainMenu.class);
         intent.putExtras(bundle);
@@ -64,8 +70,10 @@ public class Profile extends AppCompatActivity {
     private FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
         @Override
         public void onSuccess(LoginResult loginResult) {
-            if(facebookAccessToken != null)
+            if(facebookAccessToken != null) {
+                System.out.println("Facebook Token: " + facebookAccessToken);
                 linkFacebook(facebookAccessToken);
+            }
         }
         @Override
         public void onCancel() {
@@ -85,15 +93,36 @@ public class Profile extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
 
         TextView profileHeader = (TextView) findViewById(R.id.profileHeader);
         profileHeader.setText(username + "'s Profile");
 
-        //TODO: add logic to retrieve avatar from UserResource
-        //Placeholder for grabbing avatar from UserResource
-        ImageView imageView = (ImageView) findViewById(R.id.profileAvatar);
-        imageView.setImageResource(R.drawable.ucf);
+        // Attempts to retrieve the "avatar" additional property from the userResource
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+
+                UsersApi apiInstance = client.createService(UsersApi.class);
+                try {
+                    Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
+                    Response<UserResource> result = call.execute();
+                    System.out.println(result.body());
+
+                    Map<String, Property> map = result.body().getAdditionalProperties();
+                    System.out.println("MAP: " + map);
+                    ImageProperty avatar = (ImageProperty)map.get("avatar");
+                    String imageUrl = avatar.getUrl();
+                    System.out.println("IMAGE URL: " + imageUrl);
+
+                    new DownloadImageTask((ImageView) findViewById(R.id.profileAvatar))
+                            .execute(imageUrl);
+                } catch (IOException e) {
+                    System.err.println("Exception when calling UsersApi#getUser");
+                    e.printStackTrace();
+                }
+            }
+        }).start();
 
         FacebookSdk.sdkInitialize(getApplicationContext());
         callbackManager = CallbackManager.Factory.create();
@@ -102,6 +131,7 @@ public class Profile extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 facebookAccessToken = loginResult.getAccessToken().getToken();
+                System.out.println("Facebook Token: " + facebookAccessToken);
                 linkFacebook(facebookAccessToken);
             }
 
@@ -119,44 +149,43 @@ public class Profile extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
-
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                 // Retrieves user's level progress
-                GamificationLevelingApi apiInstance = new GamificationLevelingApi();
+                GamificationLevelingApi apiInstance = client.createService(GamificationLevelingApi.class);
                 try {
-                    final UserLevelingResource result = apiInstance.getUserLevel(userId, "TicTacToe");
-                    System.out.println(result);
+                    Call<UserLevelingResource> call = apiInstance.getUserLevel(userId, "TicTacToe");
+                    final Response<UserLevelingResource> result = call.execute();
+                    System.out.println(result.body());
 
-                    Profile.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            setLevelProgress(result);
-                        }
-                    });
-                } catch (ApiException e) {
+                    if(result.body() != null) {
+                        Profile.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setLevelProgress(result.body());
+                            }
+                        });
+                    }
+                } catch (IOException e) {
                     System.err.println("Exception when calling GamificationLevelingApi#getUserLevel");
                     e.printStackTrace();
                 }
 
                 // Retrieves items from inventory to populate dropdown menu
-                UsersInventoryApi apiInstance3 = new UsersInventoryApi();
+                UsersInventoryApi apiInstance2 = client.createService(UsersInventoryApi.class);
                 Boolean inactive = false; // If true, accepts inactive user inventories
                 try {
-                    final PageResourceUserInventoryResource result = apiInstance3.getUserInventories(userId, inactive, null, null, null, null, null, null, null);
-                    System.out.println(result);
+                    Call<PageResourceUserInventoryResource> call = apiInstance2.getUserInventories(userId, inactive, null, null, null, null, null, null, null);
+                    final Response<PageResourceUserInventoryResource> result = call.execute();
+                    System.out.println(result.body());
 
                     Profile.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            initializeSpinner(result);
+                            initializeSpinner(result.body());
                         }
                     });
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling UsersInventoryApi#getUserInventories");
                     e.printStackTrace();
                 }
@@ -211,22 +240,20 @@ public class Profile extends AppCompatActivity {
         {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
             {
-                String selectedItem = parent.getItemAtPosition(position).toString();
-                TextProperty textProperty = new TextProperty();
-                textProperty.setType("text");
+                colorLiteral = parent.getItemAtPosition(position).toString();
                 if(position == 0)
                     return;
-                else if(selectedItem.equals("Red"))
-                    textProperty.setValue(getString(R.string.red));
-                else if(selectedItem.equals("Blue"))
-                    textProperty.setValue(getString(R.string.red));
-                else if(selectedItem.equals("Yellow"))
-                    textProperty.setValue(getString(R.string.yellow));
-                else if(selectedItem.equals("Green"))
-                    textProperty.setValue(getString(R.string.green));
+                else if(colorLiteral.equals("Red"))
+                    gamePieceColor = getString(R.string.red);
+                else if(colorLiteral.equals("Blue"))
+                    gamePieceColor = getString(R.string.blue);
+                else if(colorLiteral.equals("Yellow"))
+                    gamePieceColor = getString(R.string.yellow);
+                else if(colorLiteral.equals("Green"))
+                    gamePieceColor = getString(R.string.green);
                 else
-                    textProperty.setValue(getString(R.string.black));
-                changeGamePieceColor(textProperty);
+                    gamePieceColor = getString(R.string.black);
+                changeGamePieceColor();
             } // to close the onItemSelected
             public void onNothingSelected(AdapterView<?> parent)
             {
@@ -235,30 +262,36 @@ public class Profile extends AppCompatActivity {
     }
 
     // Changes the additional property "gamePieceColor" in the userResource
-    public void changeGamePieceColor(final TextProperty textProperty) {
+    public void changeGamePieceColor() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
-
-                UsersApi apiInstance = new UsersApi();
+                UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
-                    UserResource userResource = apiInstance.getUser(Integer.toString(userId));
-                    System.out.println(userResource);
+                    Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
+                    Response<UserResource> result = call.execute();
+                    System.out.println(result.body());
 
-                    userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
+                    Map<String, Property> additionalProperties = result.body().getAdditionalProperties();
+                    TextProperty gamePiece = (TextProperty) additionalProperties.get("gamePieceColor");
+                    gamePiece.setValue(gamePieceColor);
                     try {
-                        apiInstance.updateUser(Integer.toString(userId), userResource);
-                    } catch (ApiException e) {
+                        Call call2 = apiInstance.updateUser(Integer.toString(userId), result.body());
+                        call2.execute();
+
+                        Profile.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                gamePieceColorSuccess();
+                            }
+                        });
+                    } catch (IOException e) {
                         System.err.println("Exception when calling UsersApi#updateUser");
                         e.printStackTrace();
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling UsersApi#getUser");
                     e.printStackTrace();
                 }
@@ -267,20 +300,21 @@ public class Profile extends AppCompatActivity {
     }
 
     public void linkFacebook(final String facebookAccessToken) {
+        System.out.println(facebookAccessToken);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), username, null);
 
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
-
-                SocialFacebookApi apiInstance = new SocialFacebookApi();
+                SocialFacebookApi apiInstance = client.createService(SocialFacebookApi.class);
                 FacebookToken facebookToken = new FacebookToken();
+                //facebookToken.accessToken(facebookAccessToken);
                 facebookToken.setAccessToken(facebookAccessToken);
                 try {
-                    apiInstance.linkAccounts(facebookToken);
+                    Call call = apiInstance.linkAccounts(facebookToken);
+                    Response result = call.execute();
+                    System.out.println("isSuccessful(): " + result.isSuccessful());
+                    System.out.println(result.body());
 
                     Profile.this.runOnUiThread(new Runnable() {
                         @Override
@@ -288,7 +322,7 @@ public class Profile extends AppCompatActivity {
                             linkFacebookSuccess();
                         }
                     });
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling SocialFacebookApi#linkAccounts");
                     e.printStackTrace();
 
@@ -306,8 +340,8 @@ public class Profile extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(facebookAccessToken != null)
-            linkFacebook(facebookAccessToken);
+        /*if(facebookAccessToken != null)
+            linkFacebook(facebookAccessToken);*/
     }
 
     @Override
@@ -344,11 +378,19 @@ public class Profile extends AppCompatActivity {
         dialog.show(this.getFragmentManager(), "dialog");
     }
 
+    public void gamePieceColorSuccess() {
+        Bundle bundle = new Bundle();
+        bundle.putString("argument", "gamePieceColor");
+        bundle.putString("color", colorLiteral);
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
+    }
+
     public void changeAvatar(View view) {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, Avatars.class);
         intent.putExtras(bundle);
@@ -359,7 +401,6 @@ public class Profile extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, Achievements.class);
         intent.putExtras(bundle);
@@ -370,7 +411,6 @@ public class Profile extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, Subscriptions.class);
         intent.putExtras(bundle);

@@ -8,14 +8,14 @@ import android.widget.EditText;
 
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.UserResource;
 
+import retrofit2.Call;
+import retrofit2.Response;
+
 public class UserRegistration extends AppCompatActivity {
-    String adminToken;
     String username;
     String password;
     String email;
@@ -25,8 +25,8 @@ public class UserRegistration extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_registration);
-        adminToken = getIntent().getExtras().getString("adminToken");
     }
+
     //Called when "Register" button is clicked
     public void registerUser(View view) {
         EditText usernameField = (EditText) findViewById(R.id.username);
@@ -57,13 +57,15 @@ public class UserRegistration extends AppCompatActivity {
                 textProperty.setValue(getString(R.string.black));
                 userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
 
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
                 // Registering the user
-                UsersApi apiInstance = new UsersApi();
+                UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
-                    UserResource result = apiInstance.registerUser(userResource);
-                    System.out.println(result);
+                    Call<UserResource> call = apiInstance.registerUser(userResource);
+                    Response<UserResource> result = call.execute();
+                    System.out.println(result.body());
 
-                    userId = result.getId();
+                    userId = result.body().getId();
                     System.out.println("userId: " + userId);
 
                     UserRegistration.this.runOnUiThread(new Runnable() {
@@ -91,7 +93,6 @@ public class UserRegistration extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, MainMenu.class);
         intent.putExtras(bundle);

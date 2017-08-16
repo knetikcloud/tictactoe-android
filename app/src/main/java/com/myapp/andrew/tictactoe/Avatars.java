@@ -7,14 +7,17 @@ import android.view.View;
 
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.ImageProperty;
+import com.knetikcloud.model.Property;
 import com.knetikcloud.model.UserResource;
 
+import java.io.IOException;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Response;
+
 public class Avatars extends AppCompatActivity {
-    String adminToken;
     int userId;
     String username;
 
@@ -26,7 +29,6 @@ public class Avatars extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
     }
 
     // Changes the additional property "avatar" in the userResource
@@ -35,39 +37,43 @@ public class Avatars extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
-
-                UsersApi apiInstance = new UsersApi();
+                UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
-                    UserResource userResource = apiInstance.getUser(Integer.toString(userId));
-                    System.out.println(userResource);
+                    Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
+                    Response<UserResource> result = call.execute();
+                    System.out.println(result.body());
 
-                    ImageProperty imageProperty = new ImageProperty();
-                    imageProperty.setType("image");
-                    imageProperty.setUrl(view.getTag().toString());
-                    userResource.putAdditionalPropertiesItem("avatar", imageProperty);
-
+                    Map<String, Property> additionalProperties = result.body().getAdditionalProperties();
+                    ImageProperty avatar = (ImageProperty) additionalProperties.get("avatar");
+                    avatar.setUrl(view.getTag().toString());
                     try {
-                        apiInstance.updateUser(Integer.toString(userId), userResource);
-                    } catch (ApiException e) {
+                        Call call2 = apiInstance.updateUser(Integer.toString(userId), result.body());
+                        call2.execute();
+
+                        Avatars.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                loadProfile();
+                            }
+                        });
+                    } catch (IOException e) {
                         System.err.println("Exception when calling UsersApi#updateUser");
                         e.printStackTrace();
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling UsersApi#getUser");
                     e.printStackTrace();
                 }
             }
         }).start();
+    }
+
+    public void loadProfile() {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, Profile.class);
         intent.putExtras(bundle);

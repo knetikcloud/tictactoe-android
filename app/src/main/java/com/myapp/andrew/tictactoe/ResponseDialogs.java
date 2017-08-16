@@ -33,6 +33,12 @@ public class ResponseDialogs extends DialogFragment {
                     .setMessage("You do not have enough TTD to purchase this item.")
                     .setPositiveButton("OK", null);
         }
+        else if(argument.equals("gamePieceColor")) {
+            String color = getArguments().getString("color");
+            builder.setTitle("Success")
+                    .setMessage("Your game piece is now " + color +".")
+                    .setPositiveButton("OK", null);
+        }
         else if(argument.equals("facebookSuccess")) {
             builder.setTitle("Success")
                     .setMessage("Your Facebook and TicTacToe accounts are now connected.")
@@ -49,7 +55,6 @@ public class ResponseDialogs extends DialogFragment {
                     .setPositiveButton("OK", null);
         }
         else if(argument.equals("subscriptionPurchaseSuccess")) {
-            final String adminToken = getArguments().getString("adminToken");
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Success")
@@ -58,7 +63,6 @@ public class ResponseDialogs extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);
@@ -68,7 +72,6 @@ public class ResponseDialogs extends DialogFragment {
                     });
         }
         else if(argument.equals("subscriptionPurchaseError")) {
-            final String adminToken = getArguments().getString("adminToken");
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Error")
@@ -77,7 +80,6 @@ public class ResponseDialogs extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);
@@ -87,7 +89,6 @@ public class ResponseDialogs extends DialogFragment {
                     });
         }
         else if(argument.equals("subscriptionCancelSuccess")) {
-            final String adminToken = getArguments().getString("adminToken");
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Success")
@@ -96,7 +97,6 @@ public class ResponseDialogs extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);
@@ -106,7 +106,6 @@ public class ResponseDialogs extends DialogFragment {
                     });
         }
         else if(argument.equals("subscriptionCancelError")) {
-            final String adminToken = getArguments().getString("adminToken");
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Error")
@@ -115,7 +114,6 @@ public class ResponseDialogs extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);
@@ -125,7 +123,6 @@ public class ResponseDialogs extends DialogFragment {
                     });
         }
         else if(argument.equals("subscriptionRenewSuccess")) {
-            final String adminToken = getArguments().getString("adminToken");
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Success")
@@ -134,7 +131,6 @@ public class ResponseDialogs extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);
@@ -144,7 +140,6 @@ public class ResponseDialogs extends DialogFragment {
                     });
         }
         else if(argument.equals("subscriptionRenewError")) {
-            final String adminToken = getArguments().getString("adminToken");
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Error")
@@ -153,7 +148,6 @@ public class ResponseDialogs extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);

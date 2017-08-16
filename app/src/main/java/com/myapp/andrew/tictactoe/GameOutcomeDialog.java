@@ -18,7 +18,6 @@ public class GameOutcomeDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         String outcome = getArguments().getString("outcome");
         final String username = getArguments().getString("username");
-        final String adminToken = getArguments().getString("adminToken");
         final int userId = getArguments().getInt("userId");
 
         if(outcome.equals("win")) {
@@ -28,7 +27,6 @@ public class GameOutcomeDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), MainMenu.class);
@@ -44,7 +42,6 @@ public class GameOutcomeDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), MainMenu.class);
@@ -60,7 +57,6 @@ public class GameOutcomeDialog extends DialogFragment {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
                             bundle.putString("username", username);
-                            bundle.putString("adminToken", adminToken);
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), MainMenu.class);

@@ -82,7 +82,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginLeft="-7dp"
+        android:layout_marginLeft="-9dp"
         android:layout_marginTop="3dp"
         android:maxHeight="48dp"
         android:maxWidth="48dp"
@@ -92,8 +92,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/welcomeLabel"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.008"
-        app:srcCompat="@mipmap/ic_launcher" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/button"

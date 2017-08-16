@@ -8,26 +8,29 @@ import android.widget.Button;
 
 import com.knetikcloud.api.ActivitiesApi;
 import com.knetikcloud.api.BRERuleEngineEventsApi;
-import com.knetikcloud.api.GamificationAchievementsApi;
 import com.knetikcloud.api.GamificationLevelingApi;
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
-import com.knetikcloud.model.AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings;
+import com.knetikcloud.model.ActivityOccurrenceResource;
 import com.knetikcloud.model.ActivityOccurrenceResults;
+import com.knetikcloud.model.ActivityOccurrenceResultsResource;
 import com.knetikcloud.model.BreEvent;
-import com.knetikcloud.model.UserAchievementGroupResource;
+import com.knetikcloud.model.IntWrapper;
+import com.knetikcloud.model.Property;
+import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.UserResource;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Random;
+
+import retrofit2.Call;
+import retrofit2.Response;
 
 import static java.lang.Integer.parseInt;
 
 public class GameBoard extends AppCompatActivity {
 
-    String adminToken;
     Long activityOccurrenceId;
     String currPlayer = "X";
     Boolean gameOver = false;
@@ -45,53 +48,51 @@ public class GameBoard extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
 
         // Attempts to retrieve the "gamePieceColor" additional property from the userResource
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
-
-                UsersApi apiInstance = new UsersApi();
+                UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
-                    UserResource result = apiInstance.getUser(Integer.toString(userId));
-                    System.out.println(result);
+                    Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
+                    Response<UserResource> result = call.execute();
+                    System.out.println(result.body());
 
-                    //FIXME: Retrieve gamePieceColor from UserResource
-        /*          Map<String, Property> map = result.getAdditionalProperties();
+                    Map<String, Property> map = result.body().getAdditionalProperties();
                     System.out.println("MAP: " + map);
-                    String gamePieceColor = map.get("gamePieceColor").toString();
-                    System.out.println("gamePieceColor: " + gamePieceColor);*/
-                } catch (ApiException e) {
+                    TextProperty gamePieceProperty = (TextProperty)map.get("gamePieceColor");
+                    gamePieceColor = gamePieceProperty.getValue();
+                    System.out.println("gamePieceColor: " + gamePieceColor);
+                } catch (IOException e) {
                     System.err.println("Exception when calling UsersApi#getUser");
                     e.printStackTrace();
                 }
 
                 // Creating a new activity occurrence
-                ActivitiesApi apiInstance2 = new ActivitiesApi();
+                ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
                 Boolean test = false; // Boolean | if true, indicates that the occurrence should NOT be created. This can be used to test for eligibility and valid settings
-                AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings activityOccurrenceResource = new AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings(); // AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings | The activity occurrence object
+                ActivityOccurrenceResource activityOccurrenceResource = new ActivityOccurrenceResource(); // ActivityOccurrenceResource | The activity occurrence object
                 activityOccurrenceResource.setActivityId(3L);
                 activityOccurrenceResource.setChallengeActivityId(8L);
                 activityOccurrenceResource.setEventId(1L);
                 try {
-                    AOccurrenceOfAnActivityTheActualGameForExampleUsedToTrackScoresParticipantsAndProvideSettings result = apiInstance2.createActivityOccurrence(test, activityOccurrenceResource);
-                    System.out.println(result);
-                    activityOccurrenceId = result.getId();
+                    Call<ActivityOccurrenceResource> call = apiInstance2.createActivityOccurrence(test, activityOccurrenceResource);
+                    Response<ActivityOccurrenceResource> result = call.execute();
+                    System.out.println(result.body());
+                    activityOccurrenceId = result.body().getId();
 
                     // Changing status of activity occurrence to "PLAYING"
                     try {
-                        apiInstance2.updateActivityOccurrence(activityOccurrenceId, "PLAYING");
-                    } catch (ApiException e) {
+                        Call call2 = apiInstance2.updateActivityOccurrence(activityOccurrenceId, "PLAYING");
+                        Response result2 = call2.execute();
+                    } catch (IOException e) {
                         System.err.println("Exception when calling ActivitiesApi#updateActivityOccurrence");
                         e.printStackTrace();
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling ActivitiesApi#createActivityOccurrence");
                     e.printStackTrace();
                 }
@@ -99,7 +100,7 @@ public class GameBoard extends AppCompatActivity {
         }).start();
 
         //FIXME: Remove after fixing gamePieceColor retrieval
-        gamePieceColor = "#000000";
+        //gamePieceColor = "#000000";
     }
 
     // Called whenever one of the 9 squares is clicked
@@ -155,7 +156,6 @@ public class GameBoard extends AppCompatActivity {
                 Bundle bundle = new Bundle();
                 bundle.putString("username", username);
                 bundle.putInt("userId", userId);
-                bundle.putString("adminToken", adminToken);
 
                 final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
                 gamePlayedEvent.setUserId(userId);
@@ -175,44 +175,44 @@ public class GameBoard extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        ApiClient defaultClient = Configuration.getDefaultApiClient();
-                        defaultClient.setBasePath(getString(R.string.baseurl));
-
-                        // Configure OAuth2 access token for authorization: OAuth2
-                        OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                        OAuth2.setAccessToken(adminToken);
+                        ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                         BreEvent breEvent = new BreEvent();
                         breEvent.setEventName("Game Played");
                         breEvent.setParams(gamePlayedEvent);
 
-                        BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
+                        BRERuleEngineEventsApi apiInstance = client.createService(BRERuleEngineEventsApi.class);
                         try {
-                            apiInstance.sendBREEvent(breEvent);
+                            Call call = apiInstance.sendBREEvent(breEvent);
+                            Response result = call.execute();
                             System.out.println("Game Played event fired for userId " + userId);
                         }
-                        catch (ApiException e) {
+                        catch (IOException e) {
                             System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
                             e.printStackTrace();
                         }
 
                         // Change status of activity occurrence to "FINISHED"
-                        ActivitiesApi apiInstance2 = new ActivitiesApi();
-                        ActivityOccurrenceResults activityOccurrenceResults = new ActivityOccurrenceResults(); // ActivityOccurrenceResults | The activity occurrence object
+                        ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
+                        ActivityOccurrenceResultsResource activityOccurrenceResults = new ActivityOccurrenceResultsResource(); // ActivityOccurrenceResultsResource | The activity occurrence object
                         try {
-                            ActivityOccurrenceResults result = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
-                            System.out.println(result);
-                        } catch (ApiException e) {
+                            Call<ActivityOccurrenceResults> call = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
+                            Response<ActivityOccurrenceResults> result = call.execute();
+                            System.out.println(result.body());
+                        } catch (IOException e) {
                             System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
                             e.printStackTrace();
                         }
 
                         // Increment user's leveling progress by 1
                         if(value.equals("X")) {
-                            GamificationLevelingApi apiInstance3 = new GamificationLevelingApi();
+                            GamificationLevelingApi apiInstance3 = client.createService(GamificationLevelingApi.class);
+                            IntWrapper progress = new IntWrapper();
+                            progress.setValue(1);
                             try {
-                                apiInstance3.incrementProgress(userId, "TicTacToe", 1);
-                            } catch (ApiException e) {
+                                Call call = apiInstance3.incrementProgress(userId, "TicTacToe", progress);
+                                Response result = call.execute();
+                            } catch (IOException e) {
                                 System.err.println("Exception when calling GamificationLevelingApi#incrementProgress");
                                 e.printStackTrace();
                             }
@@ -231,7 +231,6 @@ public class GameBoard extends AppCompatActivity {
                     bundle.putString("outcome", "draw");
                     bundle.putString("username", username);
                     bundle.putInt("userId", userId);
-                    bundle.putString("adminToken", adminToken);
 
                     final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
                     gamePlayedEvent.setUserId(userId);
@@ -244,33 +243,30 @@ public class GameBoard extends AppCompatActivity {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ApiClient defaultClient = Configuration.getDefaultApiClient();
-                            defaultClient.setBasePath(getString(R.string.baseurl));
-
-                            // Configure OAuth2 access token for authorization: OAuth2
-                            OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                            OAuth2.setAccessToken(adminToken);
+                            ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                             BreEvent breEvent = new BreEvent();
                             breEvent.setEventName("Game Played");
                             breEvent.setParams(gamePlayedEvent);
 
-                            BRERuleEngineEventsApi apiInstance = new BRERuleEngineEventsApi();
+                            BRERuleEngineEventsApi apiInstance = client.createService(BRERuleEngineEventsApi.class);
                             try {
-                                apiInstance.sendBREEvent(breEvent);
+                                Call call = apiInstance.sendBREEvent(breEvent);
+                                Response result = call.execute();
                             }
-                            catch (Exception e) {
+                            catch (IOException e) {
                                 System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
                                 e.printStackTrace();
                             }
 
                             // Change status of activity occurrence to "FINISHED"
-                            ActivitiesApi apiInstance2 = new ActivitiesApi();
-                            ActivityOccurrenceResults activityOccurrenceResults = new ActivityOccurrenceResults(); // ActivityOccurrenceResults | The activity occurrence object
+                            ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
+                            ActivityOccurrenceResultsResource activityOccurrenceResults = new ActivityOccurrenceResultsResource(); // ActivityOccurrenceResultsResource | The activity occurrence object
                             try {
-                                ActivityOccurrenceResults result = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
-                                System.out.println(result);
-                            } catch (ApiException e) {
+                                Call<ActivityOccurrenceResults> call = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
+                                Response<ActivityOccurrenceResults> result = call.execute();
+                                System.out.println(result.body());
+                            } catch (IOException e) {
                                 System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
                                 e.printStackTrace();
                             }

@@ -12,15 +12,13 @@ import com.knetikcloud.api.PaymentsStripeApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
 import com.knetikcloud.api.UsersSubscriptionsApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.CartItemRequest;
 import com.knetikcloud.model.InventorySubscriptionResource;
 import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
 import com.knetikcloud.model.PayBySavedMethodRequest;
 import com.knetikcloud.model.PaymentMethodResource;
+import com.knetikcloud.model.StringWrapper;
 import com.knetikcloud.model.StripeCreatePaymentMethod;
 
 import com.knetikcloud.model.StripePaymentRequest;
@@ -30,14 +28,17 @@ import com.stripe.android.model.Card;
 import com.stripe.android.model.Token;
 import com.stripe.android.view.CardInputWidget;
 
+import java.io.IOException;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Response;
 
 import static android.R.attr.id;
 import static android.os.Build.VERSION_CODES.N;
 import static com.myapp.andrew.tictactoe.R.id.progressBar;
 
 public class Subscriptions extends AppCompatActivity {
-    String adminToken;
     int inventoryId;
     int invoiceId;
     Boolean paymentMethodExists = false;
@@ -55,26 +56,21 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
-
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                 // Retrieving the user's subscriptions
-                UsersSubscriptionsApi apiInstance = new UsersSubscriptionsApi();
+                UsersSubscriptionsApi apiInstance = client.createService(UsersSubscriptionsApi.class);
                 try {
-                    List<InventorySubscriptionResource> result = apiInstance.getUsersSubscriptionDetails(userId);
-                    System.out.println(result);
+                    Call<List<InventorySubscriptionResource>>  call = apiInstance.getUsersSubscriptionDetails(userId);
+                    Response<List<InventorySubscriptionResource>> result = call.execute();
+                    System.out.println(result.body());
 
                     // Checking if the user currently has the "VIP Member" subscription
-                    for(InventorySubscriptionResource rsc : result) {
+                    for(InventorySubscriptionResource rsc : result.body()) {
                         if(rsc.getSku().equals(getString(R.string.vipRecurringSku))) {
                             if(rsc.getSubscriptionStatus() == 14) { // 14 = "current"
                                 Subscriptions.this.runOnUiThread(new Runnable() {
@@ -103,7 +99,7 @@ public class Subscriptions extends AppCompatActivity {
                             }
                         }
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling UsersSubscriptionsApi#getUsersSubscriptionDetails");
                     e.printStackTrace();
                 }
@@ -118,25 +114,22 @@ public class Subscriptions extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ApiClient defaultClient = Configuration.getDefaultApiClient();
-                    defaultClient.setBasePath(getString(R.string.baseurl));
-
-                    // Configure OAuth2 access token for authorization: OAuth2
-                    OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                    OAuth2.setAccessToken(adminToken);
+                    ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                     //Changing the status of the subscription to "current"
-                    UsersSubscriptionsApi apiInstance = new UsersSubscriptionsApi();
-                    String status = "current"; // String | The new status for the subscription. Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
+                    UsersSubscriptionsApi apiInstance = client.createService(UsersSubscriptionsApi.class);
+                    StringWrapper status = new StringWrapper(); // StringWrapper | The new status for the subscription. Actual options may differ from the indicated set if the invoice status type data has been altered.  Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
+                    status.setValue("current");
                     try {
-                        apiInstance.setSubscriptionStatus(userId, inventoryId, status);
+                        Call call = apiInstance.setSubscriptionStatus(userId, inventoryId, status);
+                        Response result = call.execute();
                         Subscriptions.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 subscriptionRenewSuccess();
                             }
                         });
-                    } catch (ApiException e) {
+                    } catch (IOException e) {
                         System.err.println("Exception when calling UsersSubscriptionsApi#setSubscriptionStatus");
                         e.printStackTrace();
                         Subscriptions.this.runOnUiThread(new Runnable() {
@@ -155,25 +148,22 @@ public class Subscriptions extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ApiClient defaultClient = Configuration.getDefaultApiClient();
-                    defaultClient.setBasePath(getString(R.string.baseurl));
-
-                    // Configure OAuth2 access token for authorization: OAuth2
-                    OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                    OAuth2.setAccessToken(adminToken);
+                    ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                     //Changing the status of the subscription to "canceled"
-                    UsersSubscriptionsApi apiInstance = new UsersSubscriptionsApi();
-                    String status = "canceled"; // String | The new status for the subscription. Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
+                    UsersSubscriptionsApi apiInstance = client.createService(UsersSubscriptionsApi.class);
+                    StringWrapper status = new StringWrapper(); // StringWrapper | The new status for the subscription. Actual options may differ from the indicated set if the invoice status type data has been altered.  Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
+                    status.setValue("canceled");
                     try {
-                        apiInstance.setSubscriptionStatus(userId, inventoryId, status);
+                        Call call = apiInstance.setSubscriptionStatus(userId, inventoryId, status);
+                        Response result = call.execute();
                         Subscriptions.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 subscriptionCancelSuccess();
                             }
                         });
-                    } catch (ApiException e) {
+                    } catch (IOException e) {
                         System.err.println("Exception when calling UsersSubscriptionsApi#setSubscriptionStatus");
                         e.printStackTrace();
                         Subscriptions.this.runOnUiThread(new Runnable() {
@@ -197,45 +187,43 @@ public class Subscriptions extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ApiClient defaultClient = Configuration.getDefaultApiClient();
-                    defaultClient.setBasePath(getString(R.string.baseurl));
-
-                    // Configure OAuth2 access token for authorization: OAuth2
-                    OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                    OAuth2.setAccessToken(adminToken);
+                    ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                     // Creates a new shopping cart
-                    StoreShoppingCartsApi apiInstance = new StoreShoppingCartsApi();
+                    StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
                     String currencyCode = "USD";
                     try {
-                        String cartId = apiInstance.createCart(userId, currencyCode);
+                        Call<String> call = apiInstance.createCart(userId, currencyCode);
+                        Response<String> result = call.execute();
+                        String cartId = result.body();
                         System.out.println("Cart ID: " + cartId);
 
                         // Adds selected item to the cart
-                        StoreShoppingCartsApi apiInstance2 = new StoreShoppingCartsApi();
                         CartItemRequest cartItemRequest = new CartItemRequest();
                         cartItemRequest.setCatalogSku(getString(R.string.vipInitialSku));
                         cartItemRequest.setQuantity(1);
                         try {
-                            apiInstance.addItemToCart(cartId, cartItemRequest);
+                            Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
+                            Response result2 = call2.execute();
 
                             // Creates an invoice for the cart
-                            InvoicesApi apiInstance3 = new InvoicesApi();
+                            InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
                             InvoiceCreateRequest req = new InvoiceCreateRequest();
                             req.setCartGuid(cartId);
                             try {
-                                List<InvoiceResource> invoiceResource = apiInstance3.createInvoice(req);
-                                System.out.println(invoiceResource);
-                                invoiceId = invoiceResource.get(0).getId();
-                            } catch (ApiException e) {
+                                Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
+                                Response<List<InvoiceResource>> result3 = call3.execute();
+                                System.out.println(result3.body());
+                                invoiceId = result3.body().get(0).getId();
+                            } catch (IOException e) {
                                 System.err.println("Exception when calling InvoicesApi#createInvoice");
                                 e.printStackTrace();
                             }
-                        } catch (ApiException e) {
+                        } catch (IOException e) {
                             System.err.println("Exception when calling StoreShoppingCartsApi#addItemToCart");
                             e.printStackTrace();
                         }
-                    } catch (ApiException e) {
+                    } catch (IOException e) {
                         System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
                         e.printStackTrace();
                     }
@@ -272,13 +260,16 @@ public class Subscriptions extends AppCompatActivity {
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            // Checking if the user already has a payment method for Stripe
-                                            PaymentsApi apiInstance = new PaymentsApi();
-                                            try {
-                                                List<PaymentMethodResource> result = apiInstance.getPaymentMethods(userId, null, null, null);
-                                                System.out.println(result);
+                                            ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
-                                                for(PaymentMethodResource rsc : result) {
+                                            // Checking if the user already has a payment method for Stripe
+                                            PaymentsApi apiInstance = client.createService(PaymentsApi.class);
+                                            try {
+                                                Call<List<PaymentMethodResource>> call = apiInstance.getPaymentMethods(userId, null, null, null, null, null, null, null);
+                                                Response<List<PaymentMethodResource>> result = call.execute();
+                                                System.out.println(result.body());
+
+                                                for(PaymentMethodResource rsc : result.body()) {
                                                     if(rsc.getName().equals("Stripe Account")) {
                                                         paymentMethodId = rsc.getId().intValue();
                                                         paymentMethodExists = true;
@@ -287,16 +278,17 @@ public class Subscriptions extends AppCompatActivity {
                                                 }
                                                 // Creates a Stripe payment method for the user if they do not have one
                                                 if(!paymentMethodExists) {
-                                                    PaymentsStripeApi apiInstance2 = new PaymentsStripeApi();
+                                                    PaymentsStripeApi apiInstance2 = client.createService(PaymentsStripeApi.class);
                                                     StripeCreatePaymentMethod request = new StripeCreatePaymentMethod(); // StripeCreatePaymentMethod | The request to create a Stripe customer with payment info
                                                     request.setUserId(userId);
                                                     request.setToken(token.getId());
                                                     try {
-                                                        PaymentMethodResource paymentMethodResource = apiInstance2.createStripePaymentMethod(request);
-                                                        System.out.println(paymentMethodResource);
-                                                        paymentMethodId = paymentMethodResource.getId().intValue();
+                                                        Call<PaymentMethodResource> call2 = apiInstance2.createStripePaymentMethod(request);
+                                                        Response<PaymentMethodResource> result2 = call2.execute();
+                                                        System.out.println(result2.body());
+                                                        paymentMethodId = result2.body().getId().intValue();
 
-                                                    } catch (ApiException e) {
+                                                    } catch (IOException e) {
                                                         System.err.println("Exception when calling PaymentsStripeApi#createStripePaymentMethod");
                                                         e.printStackTrace();
                                                         Subscriptions.this.runOnUiThread(new Runnable() {
@@ -308,17 +300,18 @@ public class Subscriptions extends AppCompatActivity {
                                                         });
                                                     }
                                                 }
-                                            } catch (ApiException e) {
+                                            } catch (IOException e) {
                                                 progressBar.setVisibility(View.GONE);
                                                 System.err.println("Exception when calling PaymentsApi#getPaymentMethods");
                                                 e.printStackTrace();
                                             }
                                             // Pays the invoice with the Stripe payment method
-                                            InvoicesApi apiInstance3 = new InvoicesApi();
+                                            InvoicesApi apiInstance3 = client.createService(InvoicesApi.class);
                                             PayBySavedMethodRequest payBySavedMethodRequest = new PayBySavedMethodRequest(); // PayBySavedMethodRequest | Payment info
                                             payBySavedMethodRequest.setPaymentMethod(paymentMethodId);
                                             try {
-                                                apiInstance3.payInvoice(invoiceId, payBySavedMethodRequest);
+                                                Call call3 = apiInstance3.payInvoice(invoiceId, payBySavedMethodRequest);
+                                                Response result3 = call3.execute();
                                                 Subscriptions.this.runOnUiThread(new Runnable() {
                                                     @Override
                                                     public void run() {
@@ -326,7 +319,7 @@ public class Subscriptions extends AppCompatActivity {
                                                         subscriptionPurchaseSuccess();
                                                     }
                                                 });
-                                            } catch (ApiException e) {
+                                            } catch (IOException e) {
                                                 System.err.println("Exception when calling InvoicesApi#payInvoice");
                                                 e.printStackTrace();
                                                 Subscriptions.this.runOnUiThread(new Runnable() {
@@ -374,7 +367,6 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
         bundle.putString("argument", "subscriptionPurchaseSuccess");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -386,7 +378,6 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
         bundle.putString("argument", "subscriptionPurchaseError");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -398,7 +389,6 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
         bundle.putString("argument", "subscriptionCancelSuccess");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -410,7 +400,6 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
         bundle.putString("argument", "subscriptionCancelError");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -422,7 +411,6 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
         bundle.putString("argument", "subscriptionRenewSuccess");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -434,7 +422,6 @@ public class Subscriptions extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
         bundle.putString("argument", "subscriptionRenewError");
 
         ResponseDialogs dialog = new ResponseDialogs();

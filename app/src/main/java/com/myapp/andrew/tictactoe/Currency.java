@@ -18,9 +18,6 @@ import com.knetikcloud.api.InvoicesApi;
 import com.knetikcloud.api.PaymentsGoogleApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.CartItemRequest;
 import com.knetikcloud.model.GooglePaymentRequest;
 import com.knetikcloud.model.InvoiceCreateRequest;
@@ -29,10 +26,15 @@ import com.knetikcloud.model.InvoiceResource;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Response;
+
+import static android.media.CamcorderProfile.get;
+
 public class Currency extends AppCompatActivity {
-    String adminToken;
     int userId;
     String username;
 
@@ -59,7 +61,6 @@ public class Currency extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
 
         Intent serviceIntent =
                 new Intent("com.android.vending.billing.InAppBillingService.BIND");
@@ -82,36 +83,34 @@ public class Currency extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
-
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
                 // Creates a new shopping cart
-                StoreShoppingCartsApi apiInstance = new StoreShoppingCartsApi();
+                StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
                 String currencyCode = "USD";
                 try {
-                    String cartId = apiInstance.createCart(userId, currencyCode);
+                    Call<String> call = apiInstance.createCart(userId, currencyCode);
+                    Response<String> result = call.execute();
+                    String cartId = result.body();
                     System.out.println("Cart ID: " + cartId);
 
                     // Adds selected item to the cart
-                    StoreShoppingCartsApi apiInstance2 = new StoreShoppingCartsApi();
                     CartItemRequest cartItemRequest = new CartItemRequest();
                     cartItemRequest.setCatalogSku(sku);
                     cartItemRequest.setQuantity(1);
                     try {
-                        apiInstance.addItemToCart(cartId, cartItemRequest);
+                        Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
+                        Response result2 = call2.execute();
 
                         // Creates an invoice for the cart
-                        InvoicesApi apiInstance3 = new InvoicesApi();
+                        InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
                         InvoiceCreateRequest req = new InvoiceCreateRequest();
                         req.setCartGuid(cartId);
                         try {
-                            List<InvoiceResource> result = apiInstance3.createInvoice(req);
-                            System.out.println(result);
-                            int invoiceId = result.get(0).getId();
+                            Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
+                            Response<List<InvoiceResource>> result3 = call3.execute();
+                            System.out.println(result.body());
+                            int invoiceId = result3.body().get(0).getId();
 
                             // Creates intent to purchase item from Google Play
                             try {
@@ -132,15 +131,15 @@ public class Currency extends AppCompatActivity {
                                 System.err.println("Exception when calling IInAppBillingService#getBuyIntent");
                                 e.printStackTrace();
                             }
-                        } catch (ApiException e) {
+                        } catch (IOException e) {
                             System.err.println("Exception when calling InvoicesApi#createInvoice");
                             e.printStackTrace();
                         }
-                    } catch (ApiException e) {
+                    } catch (IOException e) {
                         System.err.println("Exception when calling StoreShoppingCartsApi#addItemToCart");
                         e.printStackTrace();
                     }
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
                     e.printStackTrace();
                 }
@@ -160,15 +159,18 @@ public class Currency extends AppCompatActivity {
                 new Thread(new Runnable () {
                     @Override
                     public void run() {
-                        PaymentsGoogleApi apiInstance = new PaymentsGoogleApi();
+                        ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+
+                        PaymentsGoogleApi apiInstance = client.createService(PaymentsGoogleApi.class);
                         GooglePaymentRequest request = new GooglePaymentRequest(); // GooglePaymentRequest | The request for paying an invoice through a Google in-app payment
                         request.setJsonPayload(purchaseData);
                         request.setSignature(dataSignature);
 
                         // Attempts to mark the invoice as paid with Google
                         try {
-                            Integer result = apiInstance.handleGooglePayment(request);
-                            System.out.println(result);
+                            Call<Integer> call = apiInstance.handleGooglePayment(request);
+                            Response<Integer> result = call.execute();
+                            System.out.println(result.body());
 
                             // Attempts to get purchaseToken from purchaseData and consume the purchase
                             try {
@@ -184,7 +186,7 @@ public class Currency extends AppCompatActivity {
                                 System.err.println("Exception when parsing JSONObject");
                                 e.printStackTrace();
                             }
-                        } catch (ApiException e) {
+                        } catch (IOException e) {
                             System.err.println("Exception when calling PaymentsGoogleApi#handleGooglePayment");
                             e.printStackTrace();
                         }

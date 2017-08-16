@@ -9,19 +9,19 @@ import android.widget.TextView;
 
 import com.knetikcloud.api.GamificationAchievementsApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.ApiException;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
 import com.knetikcloud.model.PageResourceUserAchievementGroupResource;
 import com.knetikcloud.model.UserAchievementGroupResource;
 import com.knetikcloud.model.UserAchievementResource;
 
+import java.io.IOException;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class Achievements extends AppCompatActivity {
     String username;
     int userId;
-    String adminToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,31 +31,26 @@ public class Achievements extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         username = bundle.getString("username");
         userId = bundle.getInt("userId");
-        adminToken = bundle.getString("adminToken");
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
+                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
 
-                // Configure OAuth2 access token for authorization: OAuth2
-                OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                OAuth2.setAccessToken(adminToken);
-
-                GamificationAchievementsApi apiInstance = new GamificationAchievementsApi();
+                GamificationAchievementsApi apiInstance = client.createService(GamificationAchievementsApi.class);
                 try {
-                    final PageResourceUserAchievementGroupResource result = apiInstance.getUserAchievementsProgress(userId, null, null, null, null, null);
-                    System.out.println(result);
+                    Call<PageResourceUserAchievementGroupResource> call = apiInstance.getUserAchievementsProgress(userId, null, null, null, null, null);
+                    final Response<PageResourceUserAchievementGroupResource> result = call.execute();
+                    System.out.println(result.body());
 
                     Achievements.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            printAchievements(result);
+                            printAchievements(result.body());
                         }
                     });
 
-                } catch (ApiException e) {
+                } catch (IOException e) {
                     System.err.println("Exception when calling GamificationAchievementsApi#getUserAchievementsProgress");
                     e.printStackTrace();
                 }
@@ -74,7 +69,7 @@ public class Achievements extends AppCompatActivity {
             List<UserAchievementResource> achievementResources = groupRsc.getAchievements();
 
             for (UserAchievementResource rsc : achievementResources) {
-                if (rsc.getAchieved()) {
+                if (rsc.isAchieved()) {
                     TextView textView = new TextView(getApplicationContext());
                     textView.setText(rsc.getAchievementName());
                     textView.setTextSize(18);

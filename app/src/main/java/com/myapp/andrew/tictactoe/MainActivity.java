@@ -5,17 +5,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
-import com.knetikcloud.api.AccessTokenApi;
 import com.knetikcloud.api.UtilSecurityApi;
 import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.client.Configuration;
-import com.knetikcloud.client.auth.OAuth;
-import com.knetikcloud.model.OAuth2Resource;
 import com.knetikcloud.model.TokenDetailsResource;
 
+import retrofit2.Call;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity {
-    String adminToken;
-    String userToken;
     int userId;
     String username;
     String password;
@@ -24,28 +21,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Creates a token with admin privileges on startup
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
-
-                AccessTokenApi apiInstance = new AccessTokenApi();
-                try {
-                    OAuth2Resource result = apiInstance.getOAuthToken(getString(R.string.grant_type), getString(R.string.client_id),
-                            null, getString(R.string.username), getString(R.string.password));
-                    adminToken = result.getAccessToken();
-                    System.out.println("Admin token: " + adminToken);
-                }
-                catch (Exception e) {
-                    System.err.println("Exception when calling AccessTokenApi#getOAuthToken");
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
+
     //Called when "Sign in" button is clicked
     public void userLogin(View view) {
         EditText usernameField = (EditText) findViewById(R.id.username);
@@ -57,37 +34,16 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient defaultClient = Configuration.getDefaultApiClient();
-                defaultClient.setBasePath(getString(R.string.baseurl));
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), username, password);
 
-                AccessTokenApi apiInstance = new AccessTokenApi();
+                // Attempt to retrieve userID using the userToken
+                UtilSecurityApi apiInstance = client.createService(UtilSecurityApi.class);
                 try {
-                    final OAuth2Resource result = apiInstance.getOAuthToken(getString(R.string.grant_type), getString(R.string.client_id),
-                            null, username, password);
-                    userToken = result.getAccessToken();
-                    System.out.println("User token: " + userToken);
+                    Call<TokenDetailsResource> call = apiInstance.getUserTokenDetails();
+                    Response<TokenDetailsResource> result = call.execute();
 
-                    // Configure OAuth2 access token for authorization: OAuth2
-                    OAuth OAuth2 = (OAuth) defaultClient.getAuthentication("OAuth2");
-                    OAuth2.setAccessToken(userToken);
-
-                    // Attempt to retrieve userID using the userToken
-                    UtilSecurityApi apiInstance2 = new UtilSecurityApi();
-                    try {
-                        TokenDetailsResource result2 = apiInstance2.getUserTokenDetails();
-                        userId = result2.getUserId();
-                        System.out.println("UserId: " + userId);
-                    }
-                    catch (Exception e) {
-                        System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
-                        e.printStackTrace();
-                    }
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            loginSuccess();
-                        }
-                    });
+                    userId = result.body().getUserId();
+                    System.out.println("UserId: " + userId);
                 }
                 catch (Exception e) {
                     MainActivity.this.runOnUiThread(new Runnable() {
@@ -96,9 +52,16 @@ public class MainActivity extends AppCompatActivity {
                             loginError();
                         }
                     });
-                    System.err.println("Exception when calling AccessTokenApi#getOAuthToken");
+                    ApiClients.resetUserClientInstance();
+                    System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
                     e.printStackTrace();
                 }
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        loginSuccess();
+                    }
+                });
             }
         }).start();
     }
@@ -107,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("adminToken", adminToken);
 
         Intent intent = new Intent(this, MainMenu.class);
         intent.putExtras(bundle);
@@ -125,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
     //Called when "Register" button is clicked
     public void openUserRegistration(View view) {
         Intent intent = new Intent(this, UserRegistration.class);
-        intent.putExtra("adminToken", adminToken);
         startActivity(intent);
     }
 }
