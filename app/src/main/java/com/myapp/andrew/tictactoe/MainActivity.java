@@ -44,6 +44,13 @@ public class MainActivity extends AppCompatActivity {
 
                     userId = result.body().getUserId();
                     System.out.println("UserId: " + userId);
+
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            loginSuccess();
+                        }
+                    });
                 }
                 catch (Exception e) {
                     MainActivity.this.runOnUiThread(new Runnable() {
@@ -56,12 +63,6 @@ public class MainActivity extends AppCompatActivity {
                     System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
                     e.printStackTrace();
                 }
-                MainActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        loginSuccess();
-                    }
-                });
             }
         }).start();
     }

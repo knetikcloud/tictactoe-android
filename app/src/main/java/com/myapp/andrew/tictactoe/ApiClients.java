@@ -32,6 +32,8 @@ public abstract class ApiClients {
             OAuth t = new OAuth(OAuthFlow.password, "", "https://andy-tictactoe.sandbox.knetikcloud.com/oauth/token", "");
             t.getTokenRequestBuilder().setClientId(ctx.getString(R.string.client_id)).setUsername(username).setPassword(password);
             userClientInstance.addAuthorization("oauth", t);
+
+
         }
         return userClientInstance;
     }

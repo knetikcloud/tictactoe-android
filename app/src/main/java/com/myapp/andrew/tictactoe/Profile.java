@@ -33,17 +33,26 @@ import com.knetikcloud.model.UserInventoryResource;
 import com.knetikcloud.model.UserLevelingResource;
 import com.knetikcloud.model.UserResource;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import io.swagger.annotations.Api;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Converter;
 import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class Profile extends AppCompatActivity {
     String colorLiteral;
+    String errorMessage = "";
     String gamePieceColor;
     int userId;
     String username;
@@ -300,7 +309,6 @@ public class Profile extends AppCompatActivity {
     }
 
     public void linkFacebook(final String facebookAccessToken) {
-        System.out.println(facebookAccessToken);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -313,15 +321,41 @@ public class Profile extends AppCompatActivity {
                 try {
                     Call call = apiInstance.linkAccounts(facebookToken);
                     Response result = call.execute();
-                    System.out.println("isSuccessful(): " + result.isSuccessful());
-                    System.out.println(result.body());
 
-                    Profile.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            linkFacebookSuccess();
+                    if(result.isSuccessful()) {
+                        Profile.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                linkFacebookSuccess();
+                            }
+                        });
+                    }
+                    else {
+                        try {
+                            JSONObject jObjError = new JSONObject(result.errorBody().string());
+                            JSONArray jsonArray = new JSONArray(jObjError.getString("result"));
+                            JSONObject jsonObject = new JSONObject(jsonArray.getString(0));
+                            errorMessage = jsonObject.getString("message");
+                            System.out.println("Error linking Facebook to user: " + errorMessage);
+
+                            Profile.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    linkFacebookError(errorMessage);
+                                }
+                            });
+                        } catch(JSONException e) {
+                            System.err.println(e.getMessage());
+                            e.printStackTrace();
+
+                            Profile.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    linkFacebookError(errorMessage);
+                                }
+                            });
                         }
-                    });
+                    }
                 } catch (IOException e) {
                     System.err.println("Exception when calling SocialFacebookApi#linkAccounts");
                     e.printStackTrace();
@@ -329,7 +363,7 @@ public class Profile extends AppCompatActivity {
                     Profile.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            linkFacebookError();
+                            linkFacebookError(errorMessage);
                         }
                     });
                 }
@@ -370,9 +404,10 @@ public class Profile extends AppCompatActivity {
         dialog.show(this.getFragmentManager(), "dialog");
     }
 
-    public void linkFacebookError() {
+    public void linkFacebookError(String errorMessage) {
         Bundle bundle = new Bundle();
         bundle.putString("argument", "facebookError");
+        bundle.putString("message", errorMessage);
         ResponseDialogs dialog = new ResponseDialogs();
         dialog.setArguments(bundle);
         dialog.show(this.getFragmentManager(), "dialog");

@@ -45,8 +45,9 @@ public class ResponseDialogs extends DialogFragment {
                     .setPositiveButton("OK", null);
         }
         else if(argument.equals("facebookError")) {
+            String message = getArguments().getString("message");
             builder.setTitle("Error")
-                    .setMessage("TicTacToe was unable to connect to your Facebook account.")
+                    .setMessage("TicTacToe was unable to connect to your Facebook account.\n\n" + message)
                     .setPositiveButton("OK", null);
         }
         else if(argument.equals("stripeCardError")) {
