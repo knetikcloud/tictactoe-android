@@ -63,7 +63,7 @@ public class Store extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 // Attempts to retrieve balance of TTD in user's wallet
                 PaymentsWalletsApi apiInstance = client.createService(PaymentsWalletsApi.class);
@@ -215,7 +215,7 @@ public class Store extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 // Creates a new shopping cart
                 StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);

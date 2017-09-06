@@ -110,7 +110,7 @@ public class Profile extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
@@ -158,7 +158,7 @@ public class Profile extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 // Retrieves user's level progress
                 GamificationLevelingApi apiInstance = client.createService(GamificationLevelingApi.class);
@@ -275,7 +275,7 @@ public class Profile extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {

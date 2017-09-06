@@ -52,7 +52,7 @@ public class MainMenu extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {

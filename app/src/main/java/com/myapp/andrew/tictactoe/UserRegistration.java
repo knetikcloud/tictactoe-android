@@ -29,7 +29,7 @@ public class UserRegistration extends AppCompatActivity {
 
     //Called when "Register" button is clicked
     public void registerUser(View view) {
-        EditText usernameField = (EditText) findViewById(R.id.username);
+        final EditText usernameField = (EditText) findViewById(R.id.username);
         EditText passwordField = (EditText) findViewById(R.id.password);
         EditText emailField = (EditText) findViewById(R.id.email);
         username = usernameField.getText().toString();
@@ -57,7 +57,8 @@ public class UserRegistration extends AppCompatActivity {
                 textProperty.setValue(getString(R.string.black));
                 userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
 
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = new ApiClient();
+                client.getAdapterBuilder().baseUrl("https://andy-tictactoe.sandbox.knetikcloud.com");
                 // Registering the user
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
@@ -68,6 +69,8 @@ public class UserRegistration extends AppCompatActivity {
                     userId = result.body().getId();
                     System.out.println("userId: " + userId);
 
+                    ApiClients.getUserClientInstance(getApplicationContext(), username, password);
+
                     UserRegistration.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -76,6 +79,8 @@ public class UserRegistration extends AppCompatActivity {
                     });
                 }
                 catch (Exception e) {
+                    ApiClients.resetUserClientInstance();
+
                     UserRegistration.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

@@ -83,7 +83,7 @@ public class Currency extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                 // Creates a new shopping cart
                 StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
@@ -159,7 +159,7 @@ public class Currency extends AppCompatActivity {
                 new Thread(new Runnable () {
                     @Override
                     public void run() {
-                        ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                        ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
                         PaymentsGoogleApi apiInstance = client.createService(PaymentsGoogleApi.class);
                         GooglePaymentRequest request = new GooglePaymentRequest(); // GooglePaymentRequest | The request for paying an invoice through a Google in-app payment
