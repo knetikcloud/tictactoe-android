@@ -18,7 +18,7 @@ import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
 import com.knetikcloud.model.PayBySavedMethodRequest;
 import com.knetikcloud.model.PaymentMethodResource;
-import com.knetikcloud.model.StringWrapper;
+import com.knetikcloud.model.SubscriptionStatusWrapper;
 import com.knetikcloud.model.StripeCreatePaymentMethod;
 
 import com.knetikcloud.model.StripePaymentRequest;
@@ -114,12 +114,12 @@ public class Subscriptions extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                    ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                     //Changing the status of the subscription to "current"
                     UsersSubscriptionsApi apiInstance = client.createService(UsersSubscriptionsApi.class);
-                    StringWrapper status = new StringWrapper(); // StringWrapper | The new status for the subscription. Actual options may differ from the indicated set if the invoice status type data has been altered.  Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
-                    status.setValue("current");
+                    SubscriptionStatusWrapper status = new SubscriptionStatusWrapper(); // StringWrapper | The new status for the subscription. Actual options may differ from the indicated set if the invoice status type data has been altered.  Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
+                    status.setValue(SubscriptionStatusWrapper.ValueEnum.CURRENT);
                     try {
                         Call call = apiInstance.setSubscriptionStatus(userId, inventoryId, status);
                         Response result = call.execute();
@@ -148,12 +148,12 @@ public class Subscriptions extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                    ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                     //Changing the status of the subscription to "canceled"
                     UsersSubscriptionsApi apiInstance = client.createService(UsersSubscriptionsApi.class);
-                    StringWrapper status = new StringWrapper(); // StringWrapper | The new status for the subscription. Actual options may differ from the indicated set if the invoice status type data has been altered.  Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
-                    status.setValue("canceled");
+                    SubscriptionStatusWrapper status = new SubscriptionStatusWrapper(); // StringWrapper | The new status for the subscription. Actual options may differ from the indicated set if the invoice status type data has been altered.  Allowable values: ('current', 'canceled', 'stopped', 'payment_failed', 'suspended')
+                    status.setValue(SubscriptionStatusWrapper.ValueEnum.CANCELED);
                     try {
                         Call call = apiInstance.setSubscriptionStatus(userId, inventoryId, status);
                         Response result = call.execute();

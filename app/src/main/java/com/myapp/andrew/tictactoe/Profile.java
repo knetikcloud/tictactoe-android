@@ -163,7 +163,7 @@ public class Profile extends AppCompatActivity {
                 // Retrieves user's level progress
                 GamificationLevelingApi apiInstance = client.createService(GamificationLevelingApi.class);
                 try {
-                    Call<UserLevelingResource> call = apiInstance.getUserLevel(userId, "TicTacToe");
+                    Call<UserLevelingResource> call = apiInstance.getUserLevel(Integer.toString(userId), "TicTacToe");
                     final Response<UserLevelingResource> result = call.execute();
                     System.out.println(result.body());
 

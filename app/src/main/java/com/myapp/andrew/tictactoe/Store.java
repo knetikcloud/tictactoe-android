@@ -26,12 +26,13 @@ import com.knetikcloud.model.UserInventoryResource;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.math.BigDecimal;
 
 import retrofit2.Call;
 import retrofit2.Response;
 
 public class Store extends AppCompatActivity {
-    Double currentBalance;
+    BigDecimal currentBalance;
     int paymentMethodId;
     int userId;
     String username;
@@ -119,7 +120,7 @@ public class Store extends AppCompatActivity {
     }
 
     // Sets current balance and which items have already been purchased
-    public void initializeStore(Double currentBalance, PageResourceUserInventoryResource result) {
+    public void initializeStore(BigDecimal currentBalance, PageResourceUserInventoryResource result) {
         TextView currentBalanceLabel = (TextView) findViewById(R.id.currentBalanceLabel);
         if(currentBalance != null)
             currentBalanceLabel.setText("Current Balance: $" + String.format("%.2f", currentBalance) + " TTD");
@@ -158,7 +159,7 @@ public class Store extends AppCompatActivity {
     public void purchaseItem(View view) {
         final Button button = (Button) view;
         if(button.getTag().toString().equals("gamePieceRed")) {
-            if (currentBalance < 100) {
+            if (currentBalance.compareTo(BigDecimal.valueOf(100)) == -1) {
                 Store.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -169,7 +170,7 @@ public class Store extends AppCompatActivity {
             }
         }
         else if(button.getTag().toString().equals("gamePieceBlue")) {
-            if (currentBalance < 200) {
+            if (currentBalance.compareTo(BigDecimal.valueOf(200)) == -1) {
                 Store.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -180,7 +181,7 @@ public class Store extends AppCompatActivity {
             }
         }
         else if(button.getTag().toString().equals("gamePieceYellow")) {
-            if (currentBalance < 300) {
+            if (currentBalance.compareTo(BigDecimal.valueOf(300)) == -1) {
                 Store.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -191,7 +192,7 @@ public class Store extends AppCompatActivity {
             }
         }
         else if(button.getTag().toString().equals("gamePieceGreen")) {
-            if (currentBalance < 400) {
+            if (currentBalance.compareTo(BigDecimal.valueOf(400)) == -1) {
                 Store.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -202,7 +203,7 @@ public class Store extends AppCompatActivity {
             }
         }
         else if(button.getTag().toString().equals("gamePieceColorsBundle")) {
-            if (currentBalance < 850) {
+            if (currentBalance.compareTo(BigDecimal.valueOf(850)) == -1) {
                 Store.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

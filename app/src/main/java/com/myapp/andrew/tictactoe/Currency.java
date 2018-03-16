@@ -15,11 +15,9 @@ import android.widget.Button;
 
 import com.android.vending.billing.IInAppBillingService;
 import com.knetikcloud.api.InvoicesApi;
-import com.knetikcloud.api.PaymentsGoogleApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
 import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.model.CartItemRequest;
-import com.knetikcloud.model.GooglePaymentRequest;
 import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
 
@@ -161,6 +159,7 @@ public class Currency extends AppCompatActivity {
                     public void run() {
                         ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
 
+                        /*
                         PaymentsGoogleApi apiInstance = client.createService(PaymentsGoogleApi.class);
                         GooglePaymentRequest request = new GooglePaymentRequest(); // GooglePaymentRequest | The request for paying an invoice through a Google in-app payment
                         request.setJsonPayload(purchaseData);
@@ -190,6 +189,7 @@ public class Currency extends AppCompatActivity {
                             System.err.println("Exception when calling PaymentsGoogleApi#handleGooglePayment");
                             e.printStackTrace();
                         }
+                        */
                     }
                 }).start();
             }

@@ -1,5 +1,6 @@
 package com.myapp.andrew.tictactoe;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,11 +8,12 @@ import android.view.View;
 import android.widget.Button;
 
 import com.knetikcloud.api.ActivitiesApi;
-import com.knetikcloud.api.BRERuleEngineEventsApi;
+import com.knetikcloud.api.RuleEngineEventsApi;
 import com.knetikcloud.api.GamificationLevelingApi;
 import com.knetikcloud.api.UsersApi;
 import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.model.ActivityOccurrenceResource;
+import com.knetikcloud.model.CreateActivityOccurrenceRequest;
 import com.knetikcloud.model.ActivityOccurrenceResults;
 import com.knetikcloud.model.ActivityOccurrenceResultsResource;
 import com.knetikcloud.model.BreEvent;
@@ -19,6 +21,7 @@ import com.knetikcloud.model.IntWrapper;
 import com.knetikcloud.model.Property;
 import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.UserResource;
+import com.knetikcloud.model.ActivityOccurrenceStatusWrapper;
 
 import java.io.IOException;
 import java.util.Map;
@@ -74,19 +77,22 @@ public class GameBoard extends AppCompatActivity {
                 // Creating a new activity occurrence
                 ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
                 Boolean test = false; // Boolean | if true, indicates that the occurrence should NOT be created. This can be used to test for eligibility and valid settings
-                ActivityOccurrenceResource activityOccurrenceResource = new ActivityOccurrenceResource(); // ActivityOccurrenceResource | The activity occurrence object
-                activityOccurrenceResource.setActivityId(3L);
-                activityOccurrenceResource.setChallengeActivityId(8L);
-                activityOccurrenceResource.setEventId(1L);
+                CreateActivityOccurrenceRequest createActivityOccurrenceRequest = new CreateActivityOccurrenceRequest(); // ActivityOccurrenceResource | The activity occurrence object
+                createActivityOccurrenceRequest.setActivityId(3L);
+                createActivityOccurrenceRequest.setChallengeActivityId(8L);
+                createActivityOccurrenceRequest.setEventId(1L);
                 try {
-                    Call<ActivityOccurrenceResource> call = apiInstance2.createActivityOccurrence(test, activityOccurrenceResource);
+                    Call<ActivityOccurrenceResource> call = apiInstance2.createActivityOccurrence(test, createActivityOccurrenceRequest);
                     Response<ActivityOccurrenceResource> result = call.execute();
                     System.out.println(result.body());
                     activityOccurrenceId = result.body().getId();
 
                     // Changing status of activity occurrence to "PLAYING"
                     try {
-                        Call call2 = apiInstance2.updateActivityOccurrence(activityOccurrenceId, "PLAYING");
+                        ActivityOccurrenceStatusWrapper activityOccurrenceStatusWrapper = new ActivityOccurrenceStatusWrapper();
+                        activityOccurrenceStatusWrapper.setValue(ActivityOccurrenceStatusWrapper.ValueEnum.PLAYING);
+
+                        Call call2 = apiInstance2.updateActivityOccurrenceStatus(activityOccurrenceId, activityOccurrenceStatusWrapper);
                         Response result2 = call2.execute();
                     } catch (IOException e) {
                         System.err.println("Exception when calling ActivitiesApi#updateActivityOccurrence");
@@ -175,17 +181,17 @@ public class GameBoard extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                        ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                         BreEvent breEvent = new BreEvent();
                         breEvent.setEventName("Game Played");
                         breEvent.setParams(gamePlayedEvent);
 
-                        BRERuleEngineEventsApi apiInstance = client.createService(BRERuleEngineEventsApi.class);
+                        RuleEngineEventsApi apiInstance = client.createService(RuleEngineEventsApi.class);
                         try {
                             Call call = apiInstance.sendBREEvent(breEvent);
                             Response result = call.execute();
-                            System.out.println("Game Played event fired for userId " + userId);
+                            System.out.println("'Game Played event fired for user ID " + userId);
                         }
                         catch (IOException e) {
                             System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
@@ -243,19 +249,19 @@ public class GameBoard extends AppCompatActivity {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ApiClient client = ApiClients.getAdminClientInstance(getApplicationContext());
+                            ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                             BreEvent breEvent = new BreEvent();
                             breEvent.setEventName("Game Played");
                             breEvent.setParams(gamePlayedEvent);
 
-                            BRERuleEngineEventsApi apiInstance = client.createService(BRERuleEngineEventsApi.class);
+                            RuleEngineEventsApi apiInstance = client.createService(RuleEngineEventsApi.class);
                             try {
                                 Call call = apiInstance.sendBREEvent(breEvent);
                                 Response result = call.execute();
                             }
                             catch (IOException e) {
-                                System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
+                                System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent-A");
                                 e.printStackTrace();
                             }
 
