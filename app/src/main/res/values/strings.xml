@@ -3,8 +3,8 @@
     <string name="baseurl">https://andy-tictactoe.sandbox.knetikcloud.com</string>
     <string name="client_id">knetik</string>
     <string name="grant_type">password</string>
-    <string name="username">admin</string>
-    <string name="password">test</string>
+    <string name="username">***</string>
+    <string name="password">***</string>
     <string name="facebook_app_id">1524764117595171</string>
     <string name="fb_login_protocol_scheme">fb1524764117595171</string>
     <string name="title_activity_achievements">Achievements</string>
@@ -15,7 +15,7 @@
     <string name="green">#009900</string>
     <string name="vipInitialSku">VIPMEMBERS-VIPMEMBERS-INITIAL-MQWHWM</string>
     <string name="vipRecurringSku">VIPMEMBERS-VIPMEMBERS-RECURRING-NKBGVD</string>
-    <string name="knetikStripeTestPublishableKey">pk_test_hgn4SJemz8INvPManIBZZBeL</string>
+    <string name="knetikStripeTestPublishableKey">pk_test_HEyvObDR9vhWT6W6oGz4dcLj</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

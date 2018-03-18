@@ -102,7 +102,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center_horizontal"
             android:lineSpacingExtra="1sp"
-            android:text="Benefits: Be able to tell all your friends that you're a very important person!"
+            android:text="Benefits: Be able to purchase new game piece colors!"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"

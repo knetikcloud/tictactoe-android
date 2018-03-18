@@ -12,14 +12,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.android.vending.billing.IInAppBillingService;
 import com.knetikcloud.api.InvoicesApi;
+import com.knetikcloud.api.PaymentsApi;
+import com.knetikcloud.api.PaymentsStripeApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
 import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.model.CartItemRequest;
 import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
+import com.knetikcloud.model.PayBySavedMethodRequest;
+import com.knetikcloud.model.PaymentMethodResource;
+import com.knetikcloud.model.StripeCreatePaymentMethod;
+import com.stripe.android.Stripe;
+import com.stripe.android.TokenCallback;
+import com.stripe.android.model.Card;
+import com.stripe.android.model.Token;
+import com.stripe.android.view.CardInputWidget;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,10 +42,14 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import static android.media.CamcorderProfile.get;
+import static com.myapp.andrew.tictactoe.R.id.progressBar;
 
 public class Currency extends AppCompatActivity {
     int userId;
     String username;
+    int paymentMethodId;
+    Boolean paymentMethodExists = false;
+    int invoiceId;
 
     // Implementing a ServiceConnection to bind the activity to IInAppBillingService and establish a connection with the In-app Billing service on Google Play
     IInAppBillingService mService;
@@ -96,6 +111,7 @@ public class Currency extends AppCompatActivity {
                     CartItemRequest cartItemRequest = new CartItemRequest();
                     cartItemRequest.setCatalogSku(sku);
                     cartItemRequest.setQuantity(1);
+
                     try {
                         Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
                         Response result2 = call2.execute();
@@ -108,27 +124,58 @@ public class Currency extends AppCompatActivity {
                             Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
                             Response<List<InvoiceResource>> result3 = call3.execute();
                             System.out.println(result.body());
-                            int invoiceId = result3.body().get(0).getId();
+                            invoiceId = result3.body().get(0).getId();
 
-                            // Creates intent to purchase item from Google Play
+                            String testPublishableKey = getString(R.string.knetikStripeTestPublishableKey);
+                            Stripe stripe = new Stripe(getApplicationContext(), testPublishableKey);
+
+                            // Checking if the user already has a payment method for Stripe
+                            PaymentsApi apiInstance2 = client.createService(PaymentsApi.class);
                             try {
-                                Bundle buyIntentBundle = mService.getBuyIntent(3, getPackageName(),
-                                        sku, "inapp", Integer.toString(invoiceId));
-                                PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
+                                Call<List<PaymentMethodResource>> callB = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
+                                Response<List<PaymentMethodResource>> resultB = callB.execute();
+                                System.out.println(result.body());
 
-                                // Response from the following method is sent to the overridden method onActivityResult()
-                                try {
-                                    startIntentSenderForResult(pendingIntent.getIntentSender(),
-                                            1001, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
-                                            Integer.valueOf(0));
-                                } catch (IntentSender.SendIntentException e) {
-                                    System.err.println("Exception when calling startIntentSenderForResult");
-                                    e.printStackTrace();
+                                for(PaymentMethodResource rsc : resultB.body()) {
+                                    if(rsc.getName().equals("Stripe Account")) {
+                                        paymentMethodId = rsc.getId().intValue();
+                                        paymentMethodExists = true;
+                                        break;
+                                    }
                                 }
-                            } catch (RemoteException e) {
-                                System.err.println("Exception when calling IInAppBillingService#getBuyIntent");
+                                // confirms they have a stripe account (which in this case, means a membership)
+                                if(!paymentMethodExists) {
+                                    System.out.println("Payment Error!!!");
+                                    currencyPaymentError();
+                                }
+                            } catch (IOException e) {
+                                //progressBar.setVisibility(View.GONE);
+                                System.err.println("Exception when calling PaymentsApi#getPaymentMethods");
                                 e.printStackTrace();
                             }
+
+                            // Pays the invoice with the Stripe payment method
+                            System.out.println("here 1");
+                            InvoicesApi apiInstance3 = client.createService(InvoicesApi.class);
+                            PayBySavedMethodRequest payBySavedMethodRequest = new PayBySavedMethodRequest(); // PayBySavedMethodRequest | Payment info
+                            payBySavedMethodRequest.setPaymentMethod(paymentMethodId);
+                            try {
+                                System.out.println("here 2");
+                                Call call4 = apiInstance3.payInvoice(invoiceId, payBySavedMethodRequest);
+                                Response result4 = call4.execute();
+                                System.out.println(result4.body());
+                                Currency.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        currencyPurchaseSuccess();
+                                    }
+                                });
+                            } catch (IOException e) {
+                                System.err.println("Exception when calling InvoicesApi#payInvoice");
+                                e.printStackTrace();
+                                currencyPurchaseError();
+                            }
+
                         } catch (IOException e) {
                             System.err.println("Exception when calling InvoicesApi#createInvoice");
                             e.printStackTrace();
@@ -145,54 +192,37 @@ public class Currency extends AppCompatActivity {
         }).start();
     }
 
-    // Receives response from method startIntentSenderForResult()
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
-        if (requestCode == 1001) {
-            int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
-            final String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-            final String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+    public void currencyPurchaseError() {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("argument", "currencyPurchaseError");
 
-            if (resultCode == RESULT_OK) {
-                new Thread(new Runnable () {
-                    @Override
-                    public void run() {
-                        ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
+    }
 
-                        /*
-                        PaymentsGoogleApi apiInstance = client.createService(PaymentsGoogleApi.class);
-                        GooglePaymentRequest request = new GooglePaymentRequest(); // GooglePaymentRequest | The request for paying an invoice through a Google in-app payment
-                        request.setJsonPayload(purchaseData);
-                        request.setSignature(dataSignature);
+    public void currencyPurchaseSuccess() {
+        System.out.println("in here now");
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("argument", "currencyPurchaseSuccess");
 
-                        // Attempts to mark the invoice as paid with Google
-                        try {
-                            Call<Integer> call = apiInstance.handleGooglePayment(request);
-                            Response<Integer> result = call.execute();
-                            System.out.println(result.body());
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
+    }
 
-                            // Attempts to get purchaseToken from purchaseData and consume the purchase
-                            try {
-                                JSONObject jo = new JSONObject(purchaseData);
-                                String purchaseToken = jo.getString("purchaseToken");
-                                try {
-                                    int response = mService.consumePurchase(3, getPackageName(), purchaseToken);
-                                } catch (RemoteException e) {
-                                    System.err.println("Exception when calling IInAppBillingService#consumePurchase");
-                                    e.printStackTrace();
-                                }
-                            } catch (JSONException e) {
-                                System.err.println("Exception when parsing JSONObject");
-                                e.printStackTrace();
-                            }
-                        } catch (IOException e) {
-                            System.err.println("Exception when calling PaymentsGoogleApi#handleGooglePayment");
-                            e.printStackTrace();
-                        }
-                        */
-                    }
-                }).start();
-            }
-        }
+    public void currencyPaymentError() {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("argument", "currencyPaymentError");
+
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
     }
 }

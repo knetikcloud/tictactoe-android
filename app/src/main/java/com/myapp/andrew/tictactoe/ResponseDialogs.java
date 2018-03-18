@@ -59,7 +59,7 @@ public class ResponseDialogs extends DialogFragment {
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Success")
-                    .setMessage("You have successfully purchased this subscription.")
+                    .setMessage("You have successfully purchased this subscription.  It may take some time for the subscription to process.")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();
@@ -152,6 +152,57 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putInt("userId", userId);
 
                             Intent intent = new Intent(getActivity(), Profile.class);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+                    });
+        }
+        else if(argument.equals("currencyPurchaseError")) {
+            final int userId = getArguments().getInt("userId");
+            final String username = getArguments().getString("username");
+            builder.setTitle("Error")
+                    .setMessage("An error occurred while processing your currency purchase. Please try again later.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putInt("userId", userId);
+
+                            Intent intent = new Intent(getActivity(), Profile.class);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+                    });
+        }
+        else if(argument.equals("currencyPurchaseSuccess")) {
+            final int userId = getArguments().getInt("userId");
+            final String username = getArguments().getString("username");
+            builder.setTitle("Success")
+                    .setMessage("You have successfully purchased more currency!  It may take some time for the purchase to process.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putInt("userId", userId);
+
+                            Intent intent = new Intent(getActivity(), Store.class);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+                    });
+        }
+        else if(argument.equals("currencyPaymentError")) {
+            final int userId = getArguments().getInt("userId");
+            final String username = getArguments().getString("username");
+            builder.setTitle("Error")
+                    .setMessage("You must purchase a subscription first.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putInt("userId", userId);
+
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }

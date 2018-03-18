@@ -260,7 +260,7 @@ public class Subscriptions extends AppCompatActivity {
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                                            ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                                             // Checking if the user already has a payment method for Stripe
                                             PaymentsApi apiInstance = client.createService(PaymentsApi.class);

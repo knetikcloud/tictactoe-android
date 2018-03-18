@@ -1,6 +1,7 @@
 package com.myapp.andrew.tictactoe;
 
-import android.content.Intent;
+import java.util.ArrayList;
+import java.util.List;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import com.knetikcloud.model.BreEvent;
 import com.knetikcloud.model.IntWrapper;
 import com.knetikcloud.model.Property;
 import com.knetikcloud.model.TextProperty;
+import com.knetikcloud.model.UserActivityResultsResource;
 import com.knetikcloud.model.UserResource;
 import com.knetikcloud.model.ActivityOccurrenceStatusWrapper;
 
@@ -87,17 +89,6 @@ public class GameBoard extends AppCompatActivity {
                     System.out.println(result.body());
                     activityOccurrenceId = result.body().getId();
 
-                    // Changing status of activity occurrence to "PLAYING"
-                    try {
-                        ActivityOccurrenceStatusWrapper activityOccurrenceStatusWrapper = new ActivityOccurrenceStatusWrapper();
-                        activityOccurrenceStatusWrapper.setValue(ActivityOccurrenceStatusWrapper.ValueEnum.PLAYING);
-
-                        Call call2 = apiInstance2.updateActivityOccurrenceStatus(activityOccurrenceId, activityOccurrenceStatusWrapper);
-                        Response result2 = call2.execute();
-                    } catch (IOException e) {
-                        System.err.println("Exception when calling ActivitiesApi#updateActivityOccurrence");
-                        e.printStackTrace();
-                    }
                 } catch (IOException e) {
                     System.err.println("Exception when calling ActivitiesApi#createActivityOccurrence");
                     e.printStackTrace();
@@ -159,69 +150,47 @@ public class GameBoard extends AppCompatActivity {
         // Checks for a win or loss
         for (int i = 0; i < winningCombos.length; i++) {
             if (squares[winningCombos[i][0]] == value && squares[winningCombos[i][1]] == value && squares[winningCombos[i][2]] == value) {
+
+
                 Bundle bundle = new Bundle();
                 bundle.putString("username", username);
                 bundle.putInt("userId", userId);
 
-                final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
-                gamePlayedEvent.setUserId(userId);
-
                 if(value.equals("X")) {
                     bundle.putString("outcome", "win");
-                    gamePlayedEvent.setVictory(true);
                 }
                 else {
                     bundle.putString("outcome", "loss");
-                    gamePlayedEvent.setVictory(false);
                 }
                 GameOutcomeDialog dialog = new GameOutcomeDialog();
                 dialog.setArguments(bundle);
                 dialog.show(this.getSupportFragmentManager(), "dialog");
+
 
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
-                        BreEvent breEvent = new BreEvent();
-                        breEvent.setEventName("Game Played");
-                        breEvent.setParams(gamePlayedEvent);
-
-                        RuleEngineEventsApi apiInstance = client.createService(RuleEngineEventsApi.class);
-                        try {
-                            Call call = apiInstance.sendBREEvent(breEvent);
-                            Response result = call.execute();
-                            System.out.println("'Game Played event fired for user ID " + userId);
-                        }
-                        catch (IOException e) {
-                            System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent");
-                            e.printStackTrace();
-                        }
-
-                        // Change status of activity occurrence to "FINISHED"
-                        ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
+                        // Report game results
+                        ActivitiesApi apiInstance = client.createService(ActivitiesApi.class);
                         ActivityOccurrenceResultsResource activityOccurrenceResults = new ActivityOccurrenceResultsResource(); // ActivityOccurrenceResultsResource | The activity occurrence object
+
+                        UserActivityResultsResource userActivityResultsResource = new UserActivityResultsResource();
+                        userActivityResultsResource.setScore(1L);
+                        userActivityResultsResource.setUserId(userId);
+
+                        List<UserActivityResultsResource> userActivityResultsResources = new ArrayList<UserActivityResultsResource>();
+                        userActivityResultsResources.add(userActivityResultsResource);
+                        activityOccurrenceResults.setUsers(userActivityResultsResources);
+
                         try {
-                            Call<ActivityOccurrenceResults> call = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
+                            Call<ActivityOccurrenceResults> call = apiInstance.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
                             Response<ActivityOccurrenceResults> result = call.execute();
                             System.out.println(result.body());
                         } catch (IOException e) {
                             System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
                             e.printStackTrace();
-                        }
-
-                        // Increment user's leveling progress by 1
-                        if(value.equals("X")) {
-                            GamificationLevelingApi apiInstance3 = client.createService(GamificationLevelingApi.class);
-                            IntWrapper progress = new IntWrapper();
-                            progress.setValue(1);
-                            try {
-                                Call call = apiInstance3.incrementProgress(userId, "TicTacToe", progress);
-                                Response result = call.execute();
-                            } catch (IOException e) {
-                                System.err.println("Exception when calling GamificationLevelingApi#incrementProgress");
-                                e.printStackTrace();
-                            }
                         }
                     }
                 }).start();
@@ -233,43 +202,26 @@ public class GameBoard extends AppCompatActivity {
         for(int i = 0; i < squares.length; i++) {
             if(squares[i] != null) {
                 if(i == squares.length - 1) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("outcome", "draw");
-                    bundle.putString("username", username);
-                    bundle.putInt("userId", userId);
-
-                    final GamePlayedEvent gamePlayedEvent = new GamePlayedEvent();
-                    gamePlayedEvent.setUserId(userId);
-                    gamePlayedEvent.setVictory(false);
-
-                    GameOutcomeDialog dialog = new GameOutcomeDialog();
-                    dialog.setArguments(bundle);
-                    dialog.show(this.getSupportFragmentManager(), "dialog");
 
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
-                            BreEvent breEvent = new BreEvent();
-                            breEvent.setEventName("Game Played");
-                            breEvent.setParams(gamePlayedEvent);
-
-                            RuleEngineEventsApi apiInstance = client.createService(RuleEngineEventsApi.class);
-                            try {
-                                Call call = apiInstance.sendBREEvent(breEvent);
-                                Response result = call.execute();
-                            }
-                            catch (IOException e) {
-                                System.err.println("Exception when calling BRERuleEngineEventsApi#sendBREEvent-A");
-                                e.printStackTrace();
-                            }
-
-                            // Change status of activity occurrence to "FINISHED"
-                            ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
+                            // Report game results
+                            ActivitiesApi apiInstance = client.createService(ActivitiesApi.class);
                             ActivityOccurrenceResultsResource activityOccurrenceResults = new ActivityOccurrenceResultsResource(); // ActivityOccurrenceResultsResource | The activity occurrence object
+
+                            UserActivityResultsResource userActivityResultsResource = new UserActivityResultsResource();
+                            userActivityResultsResource.setScore(0L);
+                            userActivityResultsResource.setUserId(userId);
+
+                            List<UserActivityResultsResource> userActivityResultsResources = new ArrayList<UserActivityResultsResource>();
+                            userActivityResultsResources.add(userActivityResultsResource);
+                            activityOccurrenceResults.setUsers(userActivityResultsResources);
+
                             try {
-                                Call<ActivityOccurrenceResults> call = apiInstance2.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
+                                Call<ActivityOccurrenceResults> call = apiInstance.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
                                 Response<ActivityOccurrenceResults> result = call.execute();
                                 System.out.println(result.body());
                             } catch (IOException e) {

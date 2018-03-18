@@ -34,13 +34,16 @@ public abstract class ApiClients {
     */
 
     public static ApiClient getUserClientInstance(Context ctx) {
-        return getUserClientInstance(ctx, null, null);
+        if(userClientInstance == null) {
+            //TODO logout user
+        }
+        return userClientInstance;
     }
 
     public static ApiClient getUserClientInstance(Context ctx, String username, String password) {
-        System.out.println("HERE 2!!!");
+        //System.out.println("HERE 2!!!");
         if(userClientInstance == null) {
-            System.out.println("HERE 2 TOO!!!");
+            //System.out.println("HERE 2 TOO!!!");
             userClientInstance = new ApiClient();
             userClientInstance.getAdapterBuilder().baseUrl("https://andy-tictactoe.sandbox.knetikcloud.com");
 
