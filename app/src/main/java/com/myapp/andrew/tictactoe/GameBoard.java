@@ -178,7 +178,7 @@ public class GameBoard extends AppCompatActivity {
                         ActivityOccurrenceResultsResource activityOccurrenceResults = new ActivityOccurrenceResultsResource(); // ActivityOccurrenceResultsResource | The activity occurrence object
 
                         UserActivityResultsResource userActivityResultsResource = new UserActivityResultsResource();
-                        userActivityResultsResource.setScore(1L);
+                        userActivityResultsResource.setScore(1L); //1 is a winning tic tac toe score
                         userActivityResultsResource.setUserId(userId);
 
                         List<UserActivityResultsResource> userActivityResultsResources = new ArrayList<UserActivityResultsResource>();
