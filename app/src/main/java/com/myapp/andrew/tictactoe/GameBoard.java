@@ -58,7 +58,7 @@ public class GameBoard extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
@@ -80,9 +80,9 @@ public class GameBoard extends AppCompatActivity {
                 ActivitiesApi apiInstance2 = client.createService(ActivitiesApi.class);
                 Boolean test = false; // Boolean | if true, indicates that the occurrence should NOT be created. This can be used to test for eligibility and valid settings
                 CreateActivityOccurrenceRequest createActivityOccurrenceRequest = new CreateActivityOccurrenceRequest(); // ActivityOccurrenceResource | The activity occurrence object
-                createActivityOccurrenceRequest.setActivityId(3L);
-                createActivityOccurrenceRequest.setChallengeActivityId(8L);
-                createActivityOccurrenceRequest.setEventId(1L);
+                createActivityOccurrenceRequest.setActivityId(Long.valueOf(R.string.activity_id)); //Long.valueOf("3L")
+                createActivityOccurrenceRequest.setChallengeActivityId(Long.valueOf(R.string.challenge_activity_id));
+                createActivityOccurrenceRequest.setEventId(Long.valueOf(R.string.event_id));
                 try {
                     Call<ActivityOccurrenceResource> call = apiInstance2.createActivityOccurrence(test, createActivityOccurrenceRequest);
                     Response<ActivityOccurrenceResource> result = call.execute();
@@ -96,8 +96,6 @@ public class GameBoard extends AppCompatActivity {
             }
         }).start();
 
-        //FIXME: Remove after fixing gamePieceColor retrieval
-        //gamePieceColor = "#000000";
     }
 
     // Called whenever one of the 9 squares is clicked

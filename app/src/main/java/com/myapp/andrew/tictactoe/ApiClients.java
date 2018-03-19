@@ -41,13 +41,13 @@ public abstract class ApiClients {
     }
 
     public static ApiClient getUserClientInstance(Context ctx, String username, String password) {
-        //System.out.println("HERE 2!!!");
-        if(userClientInstance == null) {
-            //System.out.println("HERE 2 TOO!!!");
-            userClientInstance = new ApiClient();
-            userClientInstance.getAdapterBuilder().baseUrl("https://andy-tictactoe.sandbox.knetikcloud.com");
 
-            OAuth t = new OAuth(OAuthFlow.password, "", "https://andy-tictactoe.sandbox.knetikcloud.com/oauth/token", "");
+        if(userClientInstance == null) {
+
+            userClientInstance = new ApiClient();
+            userClientInstance.getAdapterBuilder().baseUrl(ctx.getString(R.string.baseurl));
+
+            OAuth t = new OAuth(OAuthFlow.password, "", ctx.getString(R.string.baseurl) + "/oauth/token", "");
             t.getTokenRequestBuilder().setClientId(ctx.getString(R.string.client_id)).setUsername(username).setPassword(password);
             userClientInstance.addAuthorization("oauth", t);
         }
