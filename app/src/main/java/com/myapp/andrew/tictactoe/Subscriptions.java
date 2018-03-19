@@ -60,7 +60,7 @@ public class Subscriptions extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                 // Retrieving the user's subscriptions
                 UsersSubscriptionsApi apiInstance = client.createService(UsersSubscriptionsApi.class);
@@ -187,7 +187,7 @@ public class Subscriptions extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                    ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                     // Creates a new shopping cart
                     StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);

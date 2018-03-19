@@ -35,7 +35,7 @@ public class Achievements extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                 GamificationAchievementsApi apiInstance = client.createService(GamificationAchievementsApi.class);
                 try {

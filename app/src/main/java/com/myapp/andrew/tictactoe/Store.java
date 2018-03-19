@@ -64,7 +64,7 @@ public class Store extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                 // Attempts to retrieve balance of TTD in user's wallet
                 PaymentsWalletsApi apiInstance = client.createService(PaymentsWalletsApi.class);
@@ -130,6 +130,10 @@ public class Store extends AppCompatActivity {
         Button yellowButton = (Button) findViewById(R.id.gamePieceYellow);
         Button greenButton = (Button) findViewById(R.id.gamePieceGreen);
         Button bundleButton = (Button) findViewById(R.id.gamePieceColorsBundle);
+        boolean redPurchased = false;
+        boolean bluePurchased = false;
+        boolean yellowPurchased = false;
+        boolean greenPurchased = false;
 
         List<UserInventoryResource> inventoryResources = result.getContent();
 
@@ -139,18 +143,27 @@ public class Store extends AppCompatActivity {
             if(itemName.equals("gamePieceRed")) {
                 redButton.setText("Purchased");
                 redButton.setClickable(false);
+                redPurchased = true;
             }
             else if(itemName.equals("gamePieceBlue")) {
                 blueButton.setText("Purchased");
                 blueButton.setClickable(false);
+                bluePurchased = true;
             }
             else if(itemName.equals("gamePieceYellow")) {
                 yellowButton.setText("Purchased");
                 yellowButton.setClickable(false);
+                yellowPurchased = true;
             }
             else if(itemName.equals("gamePieceGreen")) {
                 greenButton.setText("Purchased");
                 greenButton.setClickable(false);
+                greenPurchased = true;
+            }
+
+            if(redPurchased && bluePurchased && yellowPurchased && greenPurchased) {
+                bundleButton.setText("Purchased");
+                bundleButton.setClickable(false);
             }
         }
     }
@@ -216,7 +229,7 @@ public class Store extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), null, null);
+                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
                 // Creates a new shopping cart
                 StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);

@@ -90,4 +90,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, UserRegistration.class);
         startActivity(intent);
     }
+
+    @Override
+    public void onBackPressed() {
+        //dont allow it
+    }
 }
