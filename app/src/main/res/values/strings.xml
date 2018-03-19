@@ -3,9 +3,9 @@
     <string name="baseurl">https://andy-tictactoe.sandbox.knetikcloud.com</string>
     <string name="client_id">knetik</string>
     <string name="grant_type">password</string>
-    <string name="activity_id">3L</string>
-    <string name="challenge_activity_id">8L</string>
-    <string name="event_id">1L</string>
+    <string name="activity_id">3</string>
+    <string name="challenge_activity_id">8</string>
+    <string name="event_id">1</string>
     <string name="password">***</string>
     <string name="facebook_app_id">1524764117595171</string>
     <string name="fb_login_protocol_scheme">fb1524764117595171</string>

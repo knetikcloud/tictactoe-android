@@ -58,9 +58,8 @@ public class GameBoard extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                System.out.println("hey1!");
+
                 ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
-                System.out.println("hey2!");
 
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
@@ -83,19 +82,10 @@ public class GameBoard extends AppCompatActivity {
                 Boolean test = false; // Boolean | if true, indicates that the occurrence should NOT be created. This can be used to test for eligibility and valid settings
                 CreateActivityOccurrenceRequest createActivityOccurrenceRequest = new CreateActivityOccurrenceRequest(); // ActivityOccurrenceResource | The activity occurrence object
 
+                createActivityOccurrenceRequest.setActivityId(Long.valueOf(getString(R.string.activity_id)));
+                createActivityOccurrenceRequest.setChallengeActivityId(Long.valueOf(getString(R.string.challenge_activity_id)));
+                createActivityOccurrenceRequest.setEventId(Long.valueOf(getString(R.string.event_id)));
 
-                System.out.println("hi!");
-                System.out.println(R.string.activity_id);
-                System.out.println(Long.valueOf(R.string.activity_id));
-                /*
-                createActivityOccurrenceRequest.setActivityId(Long.valueOf(R.string.activity_id));
-                createActivityOccurrenceRequest.setChallengeActivityId(Long.valueOf(R.string.challenge_activity_id));
-                createActivityOccurrenceRequest.setEventId(Long.valueOf(R.string.event_id));
-                */
-
-                createActivityOccurrenceRequest.setActivityId(3L);
-                createActivityOccurrenceRequest.setChallengeActivityId(8L);
-                createActivityOccurrenceRequest.setEventId(1L);
                 try {
                     Call<ActivityOccurrenceResource> call = apiInstance2.createActivityOccurrence(test, createActivityOccurrenceRequest);
                     Response<ActivityOccurrenceResource> result = call.execute();
