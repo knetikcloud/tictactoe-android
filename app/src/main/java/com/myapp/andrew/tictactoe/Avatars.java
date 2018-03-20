@@ -43,7 +43,6 @@ public class Avatars extends AppCompatActivity {
                 try {
                     Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
                     Response<UserResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Map<String, Property> additionalProperties = result.body().getAdditionalProperties();
                     ImageProperty avatar = (ImageProperty) additionalProperties.get("avatar");

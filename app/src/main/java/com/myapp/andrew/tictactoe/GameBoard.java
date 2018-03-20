@@ -65,13 +65,10 @@ public class GameBoard extends AppCompatActivity {
                 try {
                     Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
                     Response<UserResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Map<String, Property> map = result.body().getAdditionalProperties();
-                    System.out.println("MAP: " + map);
                     TextProperty gamePieceProperty = (TextProperty)map.get("gamePieceColor");
                     gamePieceColor = gamePieceProperty.getValue();
-                    System.out.println("gamePieceColor: " + gamePieceColor);
                 } catch (IOException e) {
                     System.err.println("Exception when calling UsersApi#getUser");
                     e.printStackTrace();
@@ -89,7 +86,6 @@ public class GameBoard extends AppCompatActivity {
                 try {
                     Call<ActivityOccurrenceResource> call = apiInstance2.createActivityOccurrence(test, createActivityOccurrenceRequest);
                     Response<ActivityOccurrenceResource> result = call.execute();
-                    System.out.println(result.body());
                     activityOccurrenceId = result.body().getId();
 
                 } catch (IOException e) {
@@ -188,7 +184,6 @@ public class GameBoard extends AppCompatActivity {
                         try {
                             Call<ActivityOccurrenceResults> call = apiInstance.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
                             Response<ActivityOccurrenceResults> result = call.execute();
-                            System.out.println(result.body());
                         } catch (IOException e) {
                             System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
                             e.printStackTrace();
@@ -224,7 +219,6 @@ public class GameBoard extends AppCompatActivity {
                             try {
                                 Call<ActivityOccurrenceResults> call = apiInstance.setActivityOccurrenceResults(activityOccurrenceId, activityOccurrenceResults);
                                 Response<ActivityOccurrenceResults> result = call.execute();
-                                System.out.println(result.body());
                             } catch (IOException e) {
                                 System.err.println("Exception when calling ActivitiesApi#setActivityOccurrenceResults");
                                 e.printStackTrace();

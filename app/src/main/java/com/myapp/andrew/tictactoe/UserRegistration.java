@@ -64,10 +64,8 @@ public class UserRegistration extends AppCompatActivity {
                 try {
                     Call<UserResource> call = apiInstance.registerUser(userResource);
                     Response<UserResource> result = call.execute();
-                    System.out.println(result.body());
 
                     userId = result.body().getId();
-                    System.out.println("userId: " + userId);
 
                     ApiClients.getUserClientInstance(getApplicationContext(), username, password);
 

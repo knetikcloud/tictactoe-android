@@ -72,7 +72,6 @@ public class Store extends AppCompatActivity {
                 try {
                     Call<SimpleWallet> call = apiInstance.getUserWallet(userId, currencyCode);
                     Response<SimpleWallet> result = call.execute();
-                    System.out.println(result.body());
                     currentBalance = result.body().getBalance();
                 } catch (IOException e) {
                     System.err.println("Exception when calling PaymentsWalletsApi#getUserWallet");
@@ -84,7 +83,6 @@ public class Store extends AppCompatActivity {
                 try {
                     Call<List<PaymentMethodResource>> call = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
                     Response<List<PaymentMethodResource>> result = call.execute();
-                    System.out.println(result.body());
 
                     for(PaymentMethodResource rsc : result.body()) {
                         if(rsc.getPaymentMethodType().getName().equalsIgnoreCase("Wallet")) {
@@ -103,7 +101,6 @@ public class Store extends AppCompatActivity {
                 try {
                     Call<PageResourceUserInventoryResource> call = apiInstance3.getUserInventories(userId, inactive, null, null, null, null, null, null, null);
                     final Response<PageResourceUserInventoryResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Store.this.runOnUiThread(new Runnable() {
                         @Override
@@ -238,7 +235,6 @@ public class Store extends AppCompatActivity {
                     Call<String> call = apiInstance.createCart(userId, currencyCode);
                     Response<String> result = call.execute();
                     String cartId = result.body();
-                    System.out.println("Cart ID: " + cartId);
 
                     // Adds selected item to the cart
                     CartItemRequest cartItemRequest = new CartItemRequest();
@@ -255,7 +251,6 @@ public class Store extends AppCompatActivity {
                         try {
                             Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
                             Response<List<InvoiceResource>> result3 = call3.execute();
-                            System.out.println(result3.body());
                             int invoiceId = result3.body().get(0).getId();
 
                             // Paying for the invoice
@@ -317,6 +312,16 @@ public class Store extends AppCompatActivity {
         bundle.putInt("userId", userId);
 
         Intent intent = new Intent(this, Currency.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
+
+    public void manageSubscriptions(View view) {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+
+        Intent intent = new Intent(this, Subscriptions.class);
         intent.putExtras(bundle);
         startActivity(intent);
     }

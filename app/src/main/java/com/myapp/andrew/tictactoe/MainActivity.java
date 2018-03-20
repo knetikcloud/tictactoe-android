@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
                     Response<TokenDetailsResource> result = call.execute();
 
                     userId = result.body().getUserId();
-                    System.out.println("UserId: " + userId);
 
                     MainActivity.this.runOnUiThread(new Runnable() {
                         @Override

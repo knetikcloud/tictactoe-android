@@ -19,11 +19,11 @@
         android:onClick="avatarSelected"
         android:tag="http://i.imgur.com/mDmqFZd.jpg"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.216"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/ucf2"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.658"
+        app:layout_constraintVertical_bias="0.607"
         app:srcCompat="@drawable/ucf" />
 
     <ImageView
@@ -38,11 +38,11 @@
         android:onClick="avatarSelected"
         android:tag="http://i.imgur.com/7VgKD2j.jpg"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.103"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/knetik2"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.258"
+        app:layout_constraintVertical_bias="0.224"
         app:srcCompat="@drawable/knetik" />
 
     <ImageView
@@ -58,7 +58,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.258"
+        app:layout_constraintVertical_bias="0.224"
         app:srcCompat="@drawable/knetik2" />
 
     <ImageView
@@ -66,7 +66,7 @@
         android:layout_width="105dp"
         android:layout_height="105dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginRight="48dp"
+        android:layout_marginRight="56dp"
         android:layout_marginTop="8dp"
         android:clickable="true"
         android:onClick="avatarSelected"
@@ -74,7 +74,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.658"
+        app:layout_constraintVertical_bias="0.605"
         app:srcCompat="@drawable/ucf2" />
 
     <TextView

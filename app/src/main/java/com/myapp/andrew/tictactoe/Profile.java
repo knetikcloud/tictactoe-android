@@ -80,7 +80,6 @@ public class Profile extends AppCompatActivity {
         @Override
         public void onSuccess(LoginResult loginResult) {
             if(facebookAccessToken != null) {
-                System.out.println("Facebook Token: " + facebookAccessToken);
                 linkFacebook(facebookAccessToken);
             }
         }
@@ -116,13 +115,10 @@ public class Profile extends AppCompatActivity {
                 try {
                     Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
                     Response<UserResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Map<String, Property> map = result.body().getAdditionalProperties();
-                    System.out.println("MAP: " + map);
                     ImageProperty avatar = (ImageProperty)map.get("avatar");
                     String imageUrl = avatar.getUrl();
-                    System.out.println("IMAGE URL: " + imageUrl);
 
                     new DownloadImageTask((ImageView) findViewById(R.id.profileAvatar))
                             .execute(imageUrl);
@@ -140,7 +136,6 @@ public class Profile extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 facebookAccessToken = loginResult.getAccessToken().getToken();
-                System.out.println("Facebook Token: " + facebookAccessToken);
                 linkFacebook(facebookAccessToken);
             }
 
@@ -165,7 +160,6 @@ public class Profile extends AppCompatActivity {
                 try {
                     Call<UserLevelingResource> call = apiInstance.getUserLevel(Integer.toString(userId), "TicTacToe");
                     final Response<UserLevelingResource> result = call.execute();
-                    System.out.println(result.body());
 
                     if(result.body() != null) {
                         Profile.this.runOnUiThread(new Runnable() {
@@ -186,7 +180,6 @@ public class Profile extends AppCompatActivity {
                 try {
                     Call<PageResourceUserInventoryResource> call = apiInstance2.getUserInventories(userId, inactive, null, null, null, null, null, null, null);
                     final Response<PageResourceUserInventoryResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Profile.this.runOnUiThread(new Runnable() {
                         @Override
@@ -281,7 +274,6 @@ public class Profile extends AppCompatActivity {
                 try {
                     Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
                     Response<UserResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Map<String, Property> additionalProperties = result.body().getAdditionalProperties();
                     TextProperty gamePiece = (TextProperty) additionalProperties.get("gamePieceColor");
@@ -336,7 +328,6 @@ public class Profile extends AppCompatActivity {
                             JSONArray jsonArray = new JSONArray(jObjError.getString("result"));
                             JSONObject jsonObject = new JSONObject(jsonArray.getString(0));
                             errorMessage = jsonObject.getString("message");
-                            System.out.println("Error linking Facebook to user: " + errorMessage);
 
                             Profile.this.runOnUiThread(new Runnable() {
                                 @Override
@@ -442,13 +433,4 @@ public class Profile extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void manageSubscriptions(View view) {
-        Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
-
-        Intent intent = new Intent(this, Subscriptions.class);
-        intent.putExtras(bundle);
-        startActivity(intent);
-    }
 }

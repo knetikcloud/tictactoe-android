@@ -41,7 +41,6 @@ public class Achievements extends AppCompatActivity {
                 try {
                     Call<PageResourceUserAchievementGroupResource> call = apiInstance.getUserAchievementsProgress(userId, null, null, null, null, null);
                     final Response<PageResourceUserAchievementGroupResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Achievements.this.runOnUiThread(new Runnable() {
                         @Override
@@ -64,7 +63,7 @@ public class Achievements extends AppCompatActivity {
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
 
         List<UserAchievementGroupResource> achievementGroupResources = result.getContent();
-
+        boolean achievementsUnlocked = false;
         for (UserAchievementGroupResource groupRsc : achievementGroupResources) {
             List<UserAchievementResource> achievementResources = groupRsc.getAchievements();
 
@@ -76,8 +75,18 @@ public class Achievements extends AppCompatActivity {
                     textView.setPadding(0, 0, 0, 10);
                     textView.setLayoutParams(layoutParams);
                     linearLayout.addView(textView);
+                    achievementsUnlocked = true;
                 }
             }
+        }
+
+        if(!achievementsUnlocked) {
+            TextView textView = new TextView(getApplicationContext());
+            textView.setText("No achievements unlocked.");
+            textView.setTextSize(18);
+            textView.setPadding(0, 0, 0, 10);
+            textView.setLayoutParams(layoutParams);
+            linearLayout.addView(textView);
         }
     }
 }

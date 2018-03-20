@@ -19,8 +19,10 @@ import com.knetikcloud.api.InvoicesApi;
 import com.knetikcloud.api.PaymentsApi;
 import com.knetikcloud.api.PaymentsStripeApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
+import com.knetikcloud.api.UsersSubscriptionsApi;
 import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.model.CartItemRequest;
+import com.knetikcloud.model.InventorySubscriptionResource;
 import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
 import com.knetikcloud.model.PayBySavedMethodRequest;
@@ -98,92 +100,119 @@ public class Currency extends AppCompatActivity {
             public void run() {
                 ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
 
-                // Creates a new shopping cart
-                StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
-                String currencyCode = "USD";
                 try {
-                    Call<String> call = apiInstance.createCart(userId, currencyCode);
-                    Response<String> result = call.execute();
-                    String cartId = result.body();
-                    System.out.println("Cart ID: " + cartId);
 
-                    // Adds selected item to the cart
-                    CartItemRequest cartItemRequest = new CartItemRequest();
-                    cartItemRequest.setCatalogSku(sku);
-                    cartItemRequest.setQuantity(1);
+                    // Check if user has a subscription
+                    UsersSubscriptionsApi apiInstance0 = client.createService(UsersSubscriptionsApi.class);
+                    Call<List<InventorySubscriptionResource>>  call0 = apiInstance0.getUsersSubscriptionDetails(userId);
+                    Response<List<InventorySubscriptionResource>> result0 = call0.execute();
+                    if(result0.body().size() == 0) {
+                        currencySubscriptionMissingError();
+                        return;
+                    }
+
+                    // Checking if the user currently has the "VIP Member" subscription
+                    for(InventorySubscriptionResource rsc : result0.body()) {
+                        if(rsc.getSku().equals(getString(R.string.vipRecurringSku))) {
+                            if(rsc.getSubscriptionStatus() == 14) { // 14 = "current"
+                                break;
+                            }
+                            else if (rsc.getSubscriptionStatus() == 15) { // 15 = "canceled"
+                                currencySubscriptionCancelledError();
+                                return;
+                            }
+                        }
+                    }
+
+
 
                     try {
-                        Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
-                        Response result2 = call2.execute();
 
-                        // Creates an invoice for the cart
-                        InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
-                        InvoiceCreateRequest req = new InvoiceCreateRequest();
-                        req.setCartGuid(cartId);
+                        // Creates a new shopping cart
+                        StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
+                        String currencyCode = "USD";
+
+                        Call<String> call = apiInstance.createCart(userId, currencyCode);
+                        Response<String> result = call.execute();
+                        String cartId = result.body();
+
+                        // Adds selected item to the cart
+                        CartItemRequest cartItemRequest = new CartItemRequest();
+                        cartItemRequest.setCatalogSku(sku);
+                        cartItemRequest.setQuantity(1);
+
                         try {
-                            Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
-                            Response<List<InvoiceResource>> result3 = call3.execute();
-                            System.out.println(result.body());
-                            invoiceId = result3.body().get(0).getId();
+                            Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
+                            Response result2 = call2.execute();
 
-                            String testPublishableKey = getString(R.string.knetikStripeTestPublishableKey);
-                            Stripe stripe = new Stripe(getApplicationContext(), testPublishableKey);
-
-                            // Checking if the user already has a payment method for Stripe
-                            PaymentsApi apiInstance2 = client.createService(PaymentsApi.class);
+                            // Creates an invoice for the cart
+                            InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
+                            InvoiceCreateRequest req = new InvoiceCreateRequest();
+                            req.setCartGuid(cartId);
                             try {
-                                Call<List<PaymentMethodResource>> callB = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
-                                Response<List<PaymentMethodResource>> resultB = callB.execute();
-                                System.out.println(result.body());
+                                Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
+                                Response<List<InvoiceResource>> result3 = call3.execute();
+                                invoiceId = result3.body().get(0).getId();
 
-                                for(PaymentMethodResource rsc : resultB.body()) {
-                                    if(rsc.getName().equals("Stripe Account")) {
-                                        paymentMethodId = rsc.getId().intValue();
-                                        paymentMethodExists = true;
-                                        break;
+                                String testPublishableKey = getString(R.string.knetikStripeTestPublishableKey);
+                                Stripe stripe = new Stripe(getApplicationContext(), testPublishableKey);
+
+                                // Checking if the user already has a payment method for Stripe
+                                PaymentsApi apiInstance2 = client.createService(PaymentsApi.class);
+                                try {
+                                    Call<List<PaymentMethodResource>> callB = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
+                                    Response<List<PaymentMethodResource>> resultB = callB.execute();
+
+                                    for(PaymentMethodResource rsc : resultB.body()) {
+                                        if(rsc.getName().equals("Stripe Account")) {
+                                            paymentMethodId = rsc.getId().intValue();
+                                            paymentMethodExists = true;
+                                            break;
+                                        }
                                     }
+                                    // confirms they have a stripe account (which in this case, means a membership)
+                                    if(!paymentMethodExists) {
+                                        currencyPaymentStripeError();
+                                        return;
+                                    }
+                                } catch (IOException e) {
+                                    //progressBar.setVisibility(View.GONE);
+                                    System.err.println("Exception when calling PaymentsApi#getPaymentMethods");
+                                    e.printStackTrace();
                                 }
-                                // confirms they have a stripe account (which in this case, means a membership)
-                                if(!paymentMethodExists) {
-                                    System.out.println("Payment Error!!!");
-                                    currencyPaymentError();
+
+                                // Pays the invoice with the Stripe payment method
+                                InvoicesApi apiInstance3 = client.createService(InvoicesApi.class);
+                                PayBySavedMethodRequest payBySavedMethodRequest = new PayBySavedMethodRequest(); // PayBySavedMethodRequest | Payment info
+                                payBySavedMethodRequest.setPaymentMethod(paymentMethodId);
+                                try {
+                                    Call call4 = apiInstance3.payInvoice(invoiceId, payBySavedMethodRequest);
+                                    Response result4 = call4.execute();
+                                    Currency.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            currencyPurchaseSuccess();
+                                        }
+                                    });
+                                } catch (IOException e) {
+                                    System.err.println("Exception when calling InvoicesApi#payInvoice");
+                                    e.printStackTrace();
+                                    currencyPurchaseError();
                                 }
+
                             } catch (IOException e) {
-                                //progressBar.setVisibility(View.GONE);
-                                System.err.println("Exception when calling PaymentsApi#getPaymentMethods");
+                                System.err.println("Exception when calling InvoicesApi#createInvoice");
                                 e.printStackTrace();
                             }
-
-                            // Pays the invoice with the Stripe payment method
-                            System.out.println("here 1");
-                            InvoicesApi apiInstance3 = client.createService(InvoicesApi.class);
-                            PayBySavedMethodRequest payBySavedMethodRequest = new PayBySavedMethodRequest(); // PayBySavedMethodRequest | Payment info
-                            payBySavedMethodRequest.setPaymentMethod(paymentMethodId);
-                            try {
-                                System.out.println("here 2");
-                                Call call4 = apiInstance3.payInvoice(invoiceId, payBySavedMethodRequest);
-                                Response result4 = call4.execute();
-                                System.out.println(result4.body());
-                                Currency.this.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        currencyPurchaseSuccess();
-                                    }
-                                });
-                            } catch (IOException e) {
-                                System.err.println("Exception when calling InvoicesApi#payInvoice");
-                                e.printStackTrace();
-                                currencyPurchaseError();
-                            }
-
                         } catch (IOException e) {
-                            System.err.println("Exception when calling InvoicesApi#createInvoice");
+                            System.err.println("Exception when calling StoreShoppingCartsApi#addItemToCart");
                             e.printStackTrace();
                         }
                     } catch (IOException e) {
-                        System.err.println("Exception when calling StoreShoppingCartsApi#addItemToCart");
+                        System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
                         e.printStackTrace();
                     }
+
                 } catch (IOException e) {
                     System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
                     e.printStackTrace();
@@ -204,7 +233,6 @@ public class Currency extends AppCompatActivity {
     }
 
     public void currencyPurchaseSuccess() {
-        System.out.println("in here now");
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
@@ -215,14 +243,37 @@ public class Currency extends AppCompatActivity {
         dialog.show(this.getFragmentManager(), "dialog");
     }
 
-    public void currencyPaymentError() {
+    public void currencyPaymentStripeError() {
         Bundle bundle = new Bundle();
         bundle.putString("username", username);
         bundle.putInt("userId", userId);
-        bundle.putString("argument", "currencyPaymentError");
+        bundle.putString("argument", "currencyPaymentStripeError");
 
         ResponseDialogs dialog = new ResponseDialogs();
         dialog.setArguments(bundle);
         dialog.show(this.getFragmentManager(), "dialog");
     }
+
+    public void currencySubscriptionMissingError() {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("argument", "currencySubscriptionMissingError");
+
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
+    }
+
+    public void currencySubscriptionCancelledError() {
+        Bundle bundle = new Bundle();
+        bundle.putString("username", username);
+        bundle.putInt("userId", userId);
+        bundle.putString("argument", "currencySubscriptionCancelledError");
+
+        ResponseDialogs dialog = new ResponseDialogs();
+        dialog.setArguments(bundle);
+        dialog.show(this.getFragmentManager(), "dialog");
+    }
+
 }

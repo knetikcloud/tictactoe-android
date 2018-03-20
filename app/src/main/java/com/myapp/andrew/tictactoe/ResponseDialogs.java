@@ -66,7 +66,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -83,7 +83,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -100,7 +100,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -117,7 +117,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -134,7 +134,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -151,7 +151,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -168,7 +168,7 @@ public class ResponseDialogs extends DialogFragment {
                             bundle.putString("username", username);
                             bundle.putInt("userId", userId);
 
-                            Intent intent = new Intent(getActivity(), Profile.class);
+                            Intent intent = new Intent(getActivity(), Store.class);
                             intent.putExtras(bundle);
                             startActivity(intent);
                         }
@@ -191,11 +191,45 @@ public class ResponseDialogs extends DialogFragment {
                         }
                     });
         }
-        else if(argument.equals("currencyPaymentError")) {
+        else if(argument.equals("currencySubscriptionMissingError")) {
             final int userId = getArguments().getInt("userId");
             final String username = getArguments().getString("username");
             builder.setTitle("Error")
                     .setMessage("You must purchase a subscription first.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putInt("userId", userId);
+
+                            Intent intent = new Intent(getActivity(), Store.class);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+                    });
+        }
+        else if(argument.equals("currencySubscriptionCancelledError")) {
+            final int userId = getArguments().getInt("userId");
+            final String username = getArguments().getString("username");
+            builder.setTitle("Error")
+                    .setMessage("You cancelled your subscription.  You must renew it.")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putInt("userId", userId);
+
+                            Intent intent = new Intent(getActivity(), Store.class);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+                    });
+        }
+        else if(argument.equals("currencyPaymentStripeError")) {
+            final int userId = getArguments().getInt("userId");
+            final String username = getArguments().getString("username");
+            builder.setTitle("Error")
+                    .setMessage("Problem with finding a payment method.  Please purchase a subscription.")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             Bundle bundle = new Bundle();

@@ -67,7 +67,6 @@ public class Subscriptions extends AppCompatActivity {
                 try {
                     Call<List<InventorySubscriptionResource>>  call = apiInstance.getUsersSubscriptionDetails(userId);
                     Response<List<InventorySubscriptionResource>> result = call.execute();
-                    System.out.println(result.body());
 
                     // Checking if the user currently has the "VIP Member" subscription
                     for(InventorySubscriptionResource rsc : result.body()) {
@@ -136,7 +135,6 @@ public class Subscriptions extends AppCompatActivity {
                             @Override
                             public void run() {
                                 subscriptionRenewError();
-                                System.out.println(inventoryId);
                             }
                         });
                     }
@@ -196,7 +194,6 @@ public class Subscriptions extends AppCompatActivity {
                         Call<String> call = apiInstance.createCart(userId, currencyCode);
                         Response<String> result = call.execute();
                         String cartId = result.body();
-                        System.out.println("Cart ID: " + cartId);
 
                         // Adds selected item to the cart
                         CartItemRequest cartItemRequest = new CartItemRequest();
@@ -213,7 +210,6 @@ public class Subscriptions extends AppCompatActivity {
                             try {
                                 Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
                                 Response<List<InvoiceResource>> result3 = call3.execute();
-                                System.out.println(result3.body());
                                 invoiceId = result3.body().get(0).getId();
                             } catch (IOException e) {
                                 System.err.println("Exception when calling InvoicesApi#createInvoice");
@@ -267,7 +263,6 @@ public class Subscriptions extends AppCompatActivity {
                                             try {
                                                 Call<List<PaymentMethodResource>> call = apiInstance.getPaymentMethods(userId, null, null, null, null, null, null, null);
                                                 Response<List<PaymentMethodResource>> result = call.execute();
-                                                System.out.println(result.body());
 
                                                 for(PaymentMethodResource rsc : result.body()) {
                                                     if(rsc.getName().equals("Stripe Account")) {
@@ -285,7 +280,6 @@ public class Subscriptions extends AppCompatActivity {
                                                     try {
                                                         Call<PaymentMethodResource> call2 = apiInstance2.createStripePaymentMethod(request);
                                                         Response<PaymentMethodResource> result2 = call2.execute();
-                                                        System.out.println(result2.body());
                                                         paymentMethodId = result2.body().getId().intValue();
 
                                                     } catch (IOException e) {

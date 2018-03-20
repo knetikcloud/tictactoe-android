@@ -58,13 +58,11 @@ public class MainMenu extends AppCompatActivity {
                 try {
                     Call<UserResource> call = apiInstance.getUser(Integer.toString(userId));
                     Response<UserResource> result = call.execute();
-                    System.out.println(result.body());
 
                     Map<String, Property> map = result.body().getAdditionalProperties();
-                    System.out.println("MAP: " + map);
+
                     ImageProperty avatar = (ImageProperty)map.get("avatar");
                     String imageUrl = avatar.getUrl();
-                    System.out.println("IMAGE URL: " + imageUrl);
 
                     new DownloadImageTask((ImageView) findViewById(R.id.mainMenuAvatar))
                             .execute(imageUrl);
