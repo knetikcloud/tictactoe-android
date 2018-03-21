@@ -2,6 +2,7 @@
     <string name="app_name">TicTacToe</string>
     <string name="baseurl">https://andy-tictactoe.sandbox.knetikcloud.com</string>
     <string name="client_id">tictactoe</string>
+    <string name="default_image">http://i.imgur.com/7VgKD2j.jpg</string>
     <string name="grant_type">password</string>
     <string name="activity_id">3</string>
     <string name="challenge_activity_id">8</string>

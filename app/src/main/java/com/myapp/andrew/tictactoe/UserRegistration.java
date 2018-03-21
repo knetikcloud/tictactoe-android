@@ -48,7 +48,7 @@ public class UserRegistration extends AppCompatActivity {
                 // Setting the default avatar
                 ImageProperty imageProperty = new ImageProperty();
                 imageProperty.setType("image");
-                imageProperty.setUrl("http://i.imgur.com/7VgKD2j.jpg");
+                imageProperty.setUrl(getString(R.string.default_image));
                 userResource.putAdditionalPropertiesItem("avatar", imageProperty);
 
                 //Setting the default gamePieceColor
