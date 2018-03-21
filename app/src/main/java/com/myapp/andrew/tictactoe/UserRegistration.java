@@ -58,7 +58,7 @@ public class UserRegistration extends AppCompatActivity {
                 userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
 
                 ApiClient client = new ApiClient();
-                client.getAdapterBuilder().baseUrl("https://andy-tictactoe.sandbox.knetikcloud.com");
+                client.getAdapterBuilder().baseUrl(getString(R.string.baseurl));
                 // Registering the user
                 UsersApi apiInstance = client.createService(UsersApi.class);
                 try {
