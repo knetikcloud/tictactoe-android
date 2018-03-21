@@ -50,6 +50,21 @@ public class GameOutcomeDialog extends DialogFragment {
                         }
                     });
         }
+        else if(outcome.equals("draw")) {
+            builder.setTitle("Game Over")
+                    .setMessage("It's a draw!")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Bundle bundle = new Bundle();
+                            bundle.putString("username", username);
+                            bundle.putInt("userId", userId);
+
+                            Intent intent = new Intent(getActivity(), MainMenu.class);
+                            intent.putExtras(bundle);
+                            startActivity(intent);
+                        }
+                    });
+        }
         else {
             builder.setTitle("Game Over")
                     .setMessage("It's a draw!")

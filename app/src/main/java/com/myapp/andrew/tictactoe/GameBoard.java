@@ -148,7 +148,6 @@ public class GameBoard extends AppCompatActivity {
         for (int i = 0; i < winningCombos.length; i++) {
             if (squares[winningCombos[i][0]] == value && squares[winningCombos[i][1]] == value && squares[winningCombos[i][2]] == value) {
 
-
                 Bundle bundle = new Bundle();
                 bundle.putString("username", username);
                 bundle.putInt("userId", userId);
@@ -203,6 +202,15 @@ public class GameBoard extends AppCompatActivity {
         for(int i = 0; i < squares.length; i++) {
             if(squares[i] != null) {
                 if(i == squares.length - 1) {
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString("username", username);
+                    bundle.putInt("userId", userId);
+                    bundle.putString("outcome", "draw");
+
+                    GameOutcomeDialog dialog = new GameOutcomeDialog();
+                    dialog.setArguments(bundle);
+                    dialog.show(this.getSupportFragmentManager(), "dialog");
 
                     new Thread(new Runnable() {
                         @Override
