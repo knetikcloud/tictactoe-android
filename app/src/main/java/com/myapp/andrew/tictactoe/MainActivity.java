@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         // Attempt to retrieve userID using the userToken
         UsersApi apiInstance = client.createService(UsersApi.class);
 
-        JsapiCall<UserResource> task = new JsapiCall<UserResource>(this, t -> loginSuccess(t), t -> ApiClients.resetUserClientInstance());
+        JsapiCall<UserResource> task = new JsapiCall<UserResource>(this, this::loginSuccess, t -> ApiClients.resetUserClientInstance());
 
         task.setTitle("Authenticating");
         task.setMessage("Verifying credentials...");

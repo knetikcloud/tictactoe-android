@@ -1,8 +1,8 @@
 package com.myapp.andrew.tictactoe;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 
@@ -11,9 +11,9 @@ import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.model.ImageProperty;
 import com.knetikcloud.model.TextProperty;
 import com.knetikcloud.model.UserResource;
+import com.myapp.andrew.tictactoe.util.JsapiCall;
 
 import retrofit2.Call;
-import retrofit2.Response;
 
 public class UserRegistration extends AppCompatActivity {
     String username;
@@ -29,84 +29,77 @@ public class UserRegistration extends AppCompatActivity {
 
     //Called when "Register" button is clicked
     public void registerUser(View view) {
+
         final EditText usernameField = (EditText) findViewById(R.id.username);
         EditText passwordField = (EditText) findViewById(R.id.password);
         EditText emailField = (EditText) findViewById(R.id.email);
+
         username = usernameField.getText().toString();
         password = passwordField.getText().toString();
         email = emailField.getText().toString();
 
-        //Attempts to register a new user using the inputted information
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
 
-                /******************************************
-                 * REGISTRATION
-                 */
-                UserResource userResource = new UserResource();
-                userResource.setUsername(username);
-                userResource.setPassword(password);
-                userResource.setEmail(email);
+        /******************************************
+         * REGISTRATION
+         */
+        UserResource userResource = new UserResource();
+        userResource.setUsername(username);
+        userResource.setPassword(password);
+        userResource.setEmail(email);
 
-                // Setting the default avatar
-                ImageProperty imageProperty = new ImageProperty();
-                imageProperty.setType("image");
-                imageProperty.setUrl(getString(R.string.default_image));
-                userResource.putAdditionalPropertiesItem("avatar", imageProperty);
+        // Setting the default avatar
+        ImageProperty imageProperty = new ImageProperty();
+        imageProperty.setType("image");
+        imageProperty.setUrl(getString(R.string.default_image));
+        userResource.putAdditionalPropertiesItem("avatar", imageProperty);
 
-                //Setting the default gamePieceColor
-                TextProperty textProperty = new TextProperty();
-                textProperty.setType("text");
-                textProperty.setValue(getString(R.string.black));
-                userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
+        //Setting the default gamePieceColor
+        TextProperty textProperty = new TextProperty();
+        textProperty.setType("text");
+        textProperty.setValue(getString(R.string.black));
+        userResource.putAdditionalPropertiesItem("gamePieceColor", textProperty);
 
-                ApiClient client = new ApiClient();
-                client.getAdapterBuilder().baseUrl(getString(R.string.baseurl));
-                // Registering the user
-                UsersApi apiInstance = client.createService(UsersApi.class);
-                try {
-                    Call<UserResource> call = apiInstance.registerUser(userResource);
-                    Response<UserResource> result = call.execute();
+        ApiClient client = new ApiClient();
+        client.getAdapterBuilder().baseUrl(getString(R.string.baseurl));
 
-                    userId = result.body().getId();
+        // Register user
+        UsersApi users = client.createService(UsersApi.class);
 
-                    ApiClients.getUserClientInstance(getApplicationContext(), username, password);
+        Call<UserResource> createUserCall = users.registerUser(userResource);
 
-                    UserRegistration.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            registrationSuccess();
-                        }
-                    });
-                }
-                catch (Exception e) {
-                    ApiClients.resetUserClientInstance();
+        JsapiCall<UserResource> createUserTask = new JsapiCall<UserResource>(this, this::registrationSuccess, null);
 
-                    UserRegistration.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            registrationError();
-                        }
-                    });
-                    System.err.println("Exception when calling UsersApi#registerUser");
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        createUserTask.setTitle("Registration");
+        createUserTask.setMessage("Creating account...");
+        createUserTask.execute(createUserCall);
     }
 
-    public void registrationSuccess() {
-        Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
+    public void registrationSuccess(UserResource user) {
+
+        // Authenticate
+        ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), username, password);
+
+        // Attempt to retrieve userID using the userToken
+        UsersApi apiInstance = client.createService(UsersApi.class);
+
+        JsapiCall<UserResource> task = new JsapiCall<UserResource>(this, this::loginSuccess, t -> ApiClients.resetUserClientInstance());
+
+        task.setTitle("Authenticating");
+        task.setMessage("Verifying credentials...");
+
+        task.execute(apiInstance.getUser("me"));
+    }
+
+    private void loginSuccess(UserResource user) {
+
+        ((TicTacToe)getApplicationContext()).setUser(user);
 
         Intent intent = new Intent(this, MainMenu.class);
-        intent.putExtras(bundle);
         startActivity(intent);
     }
 
     public void registrationError() {
+
         Bundle bundle = new Bundle();
         bundle.putString("argument", "register");
         ResponseDialogs dialog = new ResponseDialogs();
