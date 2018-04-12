@@ -1,6 +1,5 @@
 package com.myapp.andrew.tictactoe;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -12,58 +11,44 @@ import com.knetikcloud.client.ApiClient;
 import com.knetikcloud.model.PageResourceUserAchievementGroupResource;
 import com.knetikcloud.model.UserAchievementGroupResource;
 import com.knetikcloud.model.UserAchievementResource;
+import com.myapp.andrew.tictactoe.util.JsapiCall;
 
-import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
-import retrofit2.Response;
 
-public class Achievements extends AppCompatActivity {
-    String username;
-    int userId;
+public class Achievements extends AbstractActivity {
+
+    ApiClient client;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void _onCreate(Bundle savedInstanceState) {
+
         setContentView(R.layout.activity_achievements);
 
-        Bundle bundle = getIntent().getExtras();
-        username = bundle.getString("username");
-        userId = bundle.getInt("userId");
+        client = ApiClients.getUserClientInstance(getApplicationContext());
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
+        GamificationAchievementsApi achievements = client.createService(GamificationAchievementsApi.class);
 
-                GamificationAchievementsApi apiInstance = client.createService(GamificationAchievementsApi.class);
-                try {
-                    Call<PageResourceUserAchievementGroupResource> call = apiInstance.getUserAchievementsProgress(userId, null, null, null, null, null);
-                    final Response<PageResourceUserAchievementGroupResource> result = call.execute();
+        Call<PageResourceUserAchievementGroupResource> loadAchievementsCall = achievements.getUserAchievementsProgress(user.getId(), null, null, null, null, null);
 
-                    Achievements.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            printAchievements(result.body());
-                        }
-                    });
+        JsapiCall<PageResourceUserAchievementGroupResource> loadAchievementsTask = new JsapiCall<PageResourceUserAchievementGroupResource>(this, this::printAchievements, null);
 
-                } catch (IOException e) {
-                    System.err.println("Exception when calling GamificationAchievementsApi#getUserAchievementsProgress");
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        loadAchievementsTask.setTitle("Achievements");
+        loadAchievementsTask.setMessage("Loading achievements");
+        loadAchievementsTask.execute(loadAchievementsCall);
     }
 
     public void printAchievements(PageResourceUserAchievementGroupResource result) {
+
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.achievementLinearLayout);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.gravity = Gravity.CENTER_HORIZONTAL;
 
         List<UserAchievementGroupResource> achievementGroupResources = result.getContent();
+
         boolean achievementsUnlocked = false;
+
         for (UserAchievementGroupResource groupRsc : achievementGroupResources) {
             List<UserAchievementResource> achievementResources = groupRsc.getAchievements();
 
@@ -80,7 +65,7 @@ public class Achievements extends AppCompatActivity {
             }
         }
 
-        if(!achievementsUnlocked) {
+        if (!achievementsUnlocked) {
             TextView textView = new TextView(getApplicationContext());
             textView.setText("No achievements unlocked.");
             textView.setTextSize(18);

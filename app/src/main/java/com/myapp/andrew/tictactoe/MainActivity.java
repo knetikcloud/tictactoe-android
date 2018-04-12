@@ -1,21 +1,17 @@
 package com.myapp.andrew.tictactoe;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
-import com.knetikcloud.api.UtilSecurityApi;
-import com.knetikcloud.client.ApiClient;
-import com.knetikcloud.model.TokenDetailsResource;
 
-import retrofit2.Call;
-import retrofit2.Response;
+import com.knetikcloud.api.UsersApi;
+import com.knetikcloud.client.ApiClient;
+import com.knetikcloud.model.UserResource;
+import com.myapp.andrew.tictactoe.util.JsapiCall;
 
 public class MainActivity extends AppCompatActivity {
-    int userId;
-    String username;
-    String password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,63 +21,36 @@ public class MainActivity extends AppCompatActivity {
 
     //Called when "Sign in" button is clicked
     public void userLogin(View view) {
+
+        /***********
+         * AUTHENTICATION
+         */
         EditText usernameField = (EditText) findViewById(R.id.username);
         EditText passwordField = (EditText) findViewById(R.id.password);
-        username = usernameField.getText().toString();
-        password = passwordField.getText().toString();
 
-        //Attempts to retrieve token with username + password entered by user to confirm login
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), username, password);
+        String username = usernameField.getText().toString();
+        String password = passwordField.getText().toString();
 
-                // Attempt to retrieve userID using the userToken
-                UtilSecurityApi apiInstance = client.createService(UtilSecurityApi.class);
-                try {
-                    Call<TokenDetailsResource> call = apiInstance.getUserTokenDetails();
-                    Response<TokenDetailsResource> result = call.execute();
+        // OAUTH IS HANDLED BY THE SDK AUTOMATICALLY
+        ApiClient client = ApiClients.getUserClientInstance(getApplicationContext(), username, password);
 
-                    userId = result.body().getUserId();
+        // Attempt to retrieve userID using the userToken
+        UsersApi apiInstance = client.createService(UsersApi.class);
 
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            loginSuccess();
-                        }
-                    });
-                }
-                catch (Exception e) {
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            loginError();
-                        }
-                    });
-                    ApiClients.resetUserClientInstance();
-                    System.err.println("Exception when calling UtilSecurityApi#getUserTokenDetails");
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        JsapiCall<UserResource> task = new JsapiCall<UserResource>(this, t -> loginSuccess(t), t -> ApiClients.resetUserClientInstance());
+
+        task.setTitle("Authenticating");
+        task.setMessage("Verifying credentials...");
+
+        task.execute(apiInstance.getUser("me"));
     }
 
-    public void loginSuccess() {
-        Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
+    public void loginSuccess(UserResource user) {
+
+        ((TicTacToe)getApplicationContext()).setUser(user);
 
         Intent intent = new Intent(this, MainMenu.class);
-        intent.putExtras(bundle);
         startActivity(intent);
-    }
-
-    public void loginError() {
-        Bundle bundle = new Bundle();
-        bundle.putString("argument", "login");
-        ResponseDialogs dialog = new ResponseDialogs();
-        dialog.setArguments(bundle);
-        dialog.show(this.getFragmentManager(), "dialog");
     }
 
     //Called when "Register" button is clicked

@@ -40,6 +40,10 @@ public class UserRegistration extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
+                /******************************************
+                 * REGISTRATION
+                 */
                 UserResource userResource = new UserResource();
                 userResource.setUsername(username);
                 userResource.setPassword(password);

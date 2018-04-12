@@ -1,23 +1,17 @@
 package com.myapp.andrew.tictactoe;
 
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.os.RemoteException;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 
 import com.android.vending.billing.IInAppBillingService;
 import com.knetikcloud.api.InvoicesApi;
 import com.knetikcloud.api.PaymentsApi;
-import com.knetikcloud.api.PaymentsStripeApi;
 import com.knetikcloud.api.StoreShoppingCartsApi;
 import com.knetikcloud.api.UsersSubscriptionsApi;
 import com.knetikcloud.client.ApiClient;
@@ -27,30 +21,21 @@ import com.knetikcloud.model.InvoiceCreateRequest;
 import com.knetikcloud.model.InvoiceResource;
 import com.knetikcloud.model.PayBySavedMethodRequest;
 import com.knetikcloud.model.PaymentMethodResource;
-import com.knetikcloud.model.StripeCreatePaymentMethod;
+import com.myapp.andrew.tictactoe.util.JsapiCall;
 import com.stripe.android.Stripe;
-import com.stripe.android.TokenCallback;
-import com.stripe.android.model.Card;
-import com.stripe.android.model.Token;
-import com.stripe.android.view.CardInputWidget;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
-import retrofit2.Response;
 
-import static android.media.CamcorderProfile.get;
-import static com.myapp.andrew.tictactoe.R.id.progressBar;
+public class Currency extends AbstractActivity {
 
-public class Currency extends AppCompatActivity {
-    int userId;
-    String username;
-    int paymentMethodId;
-    Boolean paymentMethodExists = false;
+    ApiClient client;
+    StoreShoppingCartsApi carts;
+    InvoicesApi invoices;
+
+    String sku;
+    String cartId;
     int invoiceId;
 
     // Implementing a ServiceConnection to bind the activity to IInAppBillingService and establish a connection with the In-app Billing service on Google Play
@@ -69,162 +54,171 @@ public class Currency extends AppCompatActivity {
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void _onCreate(Bundle savedInstanceState) {
+
         setContentView(R.layout.activity_currency);
 
-        Bundle bundle = getIntent().getExtras();
-        username = bundle.getString("username");
-        userId = bundle.getInt("userId");
+        client = ApiClients.getUserClientInstance(getApplicationContext());
+        carts = client.createService(StoreShoppingCartsApi.class);
+        invoices = client.createService(InvoicesApi.class);
 
         Intent serviceIntent =
                 new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
+
         bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public void onDestroy() {
+
         super.onDestroy();
+
         if (mService != null) {
             unbindService(mServiceConn);
         }
     }
 
     public void makePurchase(View view) {
-        final Button button = (Button) view;
-        final String sku = button.getTag().toString();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ApiClient client = ApiClients.getUserClientInstance(getApplicationContext());
+        Button button = (Button) view;
+        sku = button.getTag().toString();
 
-                try {
+        // Check if user has a subscription
+        UsersSubscriptionsApi subscriptions = client.createService(UsersSubscriptionsApi.class);
 
-                    // Check if user has a subscription
-                    UsersSubscriptionsApi apiInstance0 = client.createService(UsersSubscriptionsApi.class);
-                    Call<List<InventorySubscriptionResource>>  call0 = apiInstance0.getUsersSubscriptionDetails(userId);
-                    Response<List<InventorySubscriptionResource>> result0 = call0.execute();
-                    if(result0.body().size() == 0) {
-                        currencySubscriptionMissingError();
-                        return;
-                    }
+        Call<List<InventorySubscriptionResource>> loadSubscriptionCall = subscriptions.getUsersSubscriptionDetails(user.getId());
+        JsapiCall<List<InventorySubscriptionResource>> loadSubscriptionTask = new JsapiCall<List<InventorySubscriptionResource>>(this, this::onSubscriptionsLoaded, null);
 
-                    // Checking if the user currently has the "VIP Member" subscription
-                    for(InventorySubscriptionResource rsc : result0.body()) {
-                        if(rsc.getSku().equals(getString(R.string.vipRecurringSku))) {
-                            if(rsc.getSubscriptionStatus() == 14) { // 14 = "current"
-                                break;
-                            }
-                            else if (rsc.getSubscriptionStatus() == 15) { // 15 = "canceled"
-                                currencySubscriptionCancelledError();
-                                return;
-                            }
-                        }
-                    }
+        loadSubscriptionTask.setTitle("TicTacToe");
+        loadSubscriptionTask.setMessage("Checking for subscription...");
+        loadSubscriptionTask.execute(loadSubscriptionCall);
+    }
 
+    private void onSubscriptionsLoaded(List<InventorySubscriptionResource> subscriptions) {
 
+        if (subscriptions.size() == 0) {
+            currencySubscriptionMissingError();
+            return;
+        }
 
-                    try {
+        // Checking if the user currently has the "VIP Member" subscription
+        for (InventorySubscriptionResource rsc : subscriptions) {
 
-                        // Creates a new shopping cart
-                        StoreShoppingCartsApi apiInstance = client.createService(StoreShoppingCartsApi.class);
-                        String currencyCode = "USD";
-
-                        Call<String> call = apiInstance.createCart(userId, currencyCode);
-                        Response<String> result = call.execute();
-                        String cartId = result.body();
-
-                        // Adds selected item to the cart
-                        CartItemRequest cartItemRequest = new CartItemRequest();
-                        cartItemRequest.setCatalogSku(sku);
-                        cartItemRequest.setQuantity(1);
-
-                        try {
-                            Call call2 = apiInstance.addItemToCart(cartId, cartItemRequest);
-                            Response result2 = call2.execute();
-
-                            // Creates an invoice for the cart
-                            InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
-                            InvoiceCreateRequest req = new InvoiceCreateRequest();
-                            req.setCartGuid(cartId);
-                            try {
-                                Call<List<InvoiceResource>> call3 = invoicesApi.createInvoice(req);
-                                Response<List<InvoiceResource>> result3 = call3.execute();
-                                invoiceId = result3.body().get(0).getId();
-
-                                String testPublishableKey = getString(R.string.knetikStripeTestPublishableKey);
-                                Stripe stripe = new Stripe(getApplicationContext(), testPublishableKey);
-
-                                // Checking if the user already has a payment method for Stripe
-                                PaymentsApi apiInstance2 = client.createService(PaymentsApi.class);
-                                try {
-                                    Call<List<PaymentMethodResource>> callB = apiInstance2.getPaymentMethods(userId, null, null, null, null, null, null, null);
-                                    Response<List<PaymentMethodResource>> resultB = callB.execute();
-
-                                    for(PaymentMethodResource rsc : resultB.body()) {
-                                        if(rsc.getName().equals("Stripe Account")) {
-                                            paymentMethodId = rsc.getId().intValue();
-                                            paymentMethodExists = true;
-                                            break;
-                                        }
-                                    }
-                                    // confirms they have a stripe account (which in this case, means a membership)
-                                    if(!paymentMethodExists) {
-                                        currencyPaymentStripeError();
-                                        return;
-                                    }
-                                } catch (IOException e) {
-                                    //progressBar.setVisibility(View.GONE);
-                                    System.err.println("Exception when calling PaymentsApi#getPaymentMethods");
-                                    e.printStackTrace();
-                                }
-
-                                // Pays the invoice with the Stripe payment method
-                                InvoicesApi apiInstance3 = client.createService(InvoicesApi.class);
-                                PayBySavedMethodRequest payBySavedMethodRequest = new PayBySavedMethodRequest(); // PayBySavedMethodRequest | Payment info
-                                payBySavedMethodRequest.setPaymentMethod(paymentMethodId);
-                                try {
-                                    Call call4 = apiInstance3.payInvoice(invoiceId, payBySavedMethodRequest);
-                                    Response result4 = call4.execute();
-                                    Currency.this.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            currencyPurchaseSuccess();
-                                        }
-                                    });
-                                } catch (IOException e) {
-                                    System.err.println("Exception when calling InvoicesApi#payInvoice");
-                                    e.printStackTrace();
-                                    currencyPurchaseError();
-                                }
-
-                            } catch (IOException e) {
-                                System.err.println("Exception when calling InvoicesApi#createInvoice");
-                                e.printStackTrace();
-                            }
-                        } catch (IOException e) {
-                            System.err.println("Exception when calling StoreShoppingCartsApi#addItemToCart");
-                            e.printStackTrace();
-                        }
-                    } catch (IOException e) {
-                        System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
-                        e.printStackTrace();
-                    }
-
-                } catch (IOException e) {
-                    System.err.println("Exception when calling StoreShoppingCartsApi#createCart");
-                    e.printStackTrace();
+            if (rsc.getSku().equals(getString(R.string.vipRecurringSku))) {
+                if (rsc.getSubscriptionStatus() == 14) { // 14 = "current"
+                    break;
+                } else if (rsc.getSubscriptionStatus() == 15) { // 15 = "canceled"
+                    currencySubscriptionCancelledError();
+                    return;
                 }
             }
-        }).start();
+        }
+
+        // Creates a new shopping cart
+        String currencyCode = "USD";
+
+        Call<String> createCartCall = carts.createCart(user.getId(), currencyCode);
+
+        JsapiCall<String> createCartTask = new JsapiCall<String>(this, this::onCartCreated, null);
+
+        createCartTask.setTitle("TicTacToe");
+        createCartTask.setMessage("Creating cart...");
+        createCartTask.execute(createCartCall);
+    }
+
+    private void onCartCreated(String cartId) {
+
+        this.cartId = cartId;
+
+        // Adds selected item to the cart
+        CartItemRequest cartItemRequest = new CartItemRequest();
+        cartItemRequest.setCatalogSku(sku);
+        cartItemRequest.setQuantity(1);
+
+        Call<Void> addItemCall = carts.addItemToCart(cartId, cartItemRequest);
+
+        JsapiCall<Void> addItemTask = new JsapiCall<Void>(this, this::onItemAdded, null);
+
+        addItemTask.setTitle("TicTacToe");
+        addItemTask.setMessage("Adding item to cart...");
+        addItemTask.execute(addItemCall);
+    }
+
+    private void onItemAdded(Void v) {
+
+        // Creates an invoice for the cart
+        InvoicesApi invoicesApi = client.createService(InvoicesApi.class);
+        InvoiceCreateRequest req = new InvoiceCreateRequest();
+        req.setCartGuid(cartId);
+
+        Call<List<InvoiceResource>> createInvoiceCall = invoices.createInvoice(req);
+
+        JsapiCall<List<InvoiceResource>> createInvoiceTask = new JsapiCall<List<InvoiceResource>>(this, this::onInvoiceCreated, null);
+
+        createInvoiceTask.setTitle("TicTacToe");
+        createInvoiceTask.setMessage("Creating invoice...");
+        createInvoiceTask.execute(createInvoiceCall);
+    }
+
+    private void onInvoiceCreated(List<InvoiceResource> invoiceList) {
+
+        invoiceId = invoiceList.get(0).getId();
+
+        String testPublishableKey = getString(R.string.knetikStripeTestPublishableKey);
+        Stripe stripe = new Stripe(getApplicationContext(), testPublishableKey);
+
+        // Checking if the user already has a payment method for Stripe
+        PaymentsApi payments = client.createService(PaymentsApi.class);
+
+        Call<List<PaymentMethodResource>> loadPmsCall = payments.getPaymentMethods(user.getId(), null, null, null, null, null, null, null);
+
+        JsapiCall<List<PaymentMethodResource>> loadPmsTask = new JsapiCall<List<PaymentMethodResource>>(this, this::onPmsLoaded, null);
+
+        loadPmsTask.setTitle("TicTacToe");
+        loadPmsTask.setMessage("Loading available payment methods...");
+        loadPmsTask.execute(loadPmsCall);
+    }
+
+    private void onPmsLoaded(List<PaymentMethodResource> pms) {
+
+        int paymentMethodId = 0;
+        boolean paymentMethodExists = false;
+
+        for (PaymentMethodResource rsc : pms) {
+            if (rsc.getName().equals("Stripe Account")) {
+                paymentMethodId = rsc.getId().intValue();
+                paymentMethodExists = true;
+                break;
+            }
+        }
+        // confirms they have a stripe account (which in this case, means a membership)
+        if (!paymentMethodExists) {
+            currencyPaymentStripeError();
+            return;
+        }
+
+        // Pays the invoice with the Stripe payment method
+
+        PayBySavedMethodRequest payBySavedMethodRequest = new PayBySavedMethodRequest(); // PayBySavedMethodRequest | Payment info
+        payBySavedMethodRequest.setPaymentMethod(paymentMethodId);
+
+        Call<Void> payInvoiceCall = invoices.payInvoice(invoiceId, payBySavedMethodRequest);
+
+        JsapiCall<Void> payInvoiceTask = new JsapiCall<Void>(this, this::onInvoicePayed, null);
+
+        payInvoiceTask.setTitle("TicTacToe");
+        payInvoiceTask.setMessage("Paying invoice...");
+        payInvoiceTask.execute(payInvoiceCall);
+    }
+
+    private void onInvoicePayed(Void v) {
+        currencyPurchaseSuccess();
     }
 
     public void currencyPurchaseError() {
+
         Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
         bundle.putString("argument", "currencyPurchaseError");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -234,8 +228,6 @@ public class Currency extends AppCompatActivity {
 
     public void currencyPurchaseSuccess() {
         Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
         bundle.putString("argument", "currencyPurchaseSuccess");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -245,8 +237,6 @@ public class Currency extends AppCompatActivity {
 
     public void currencyPaymentStripeError() {
         Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
         bundle.putString("argument", "currencyPaymentStripeError");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -256,8 +246,6 @@ public class Currency extends AppCompatActivity {
 
     public void currencySubscriptionMissingError() {
         Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
         bundle.putString("argument", "currencySubscriptionMissingError");
 
         ResponseDialogs dialog = new ResponseDialogs();
@@ -267,8 +255,6 @@ public class Currency extends AppCompatActivity {
 
     public void currencySubscriptionCancelledError() {
         Bundle bundle = new Bundle();
-        bundle.putString("username", username);
-        bundle.putInt("userId", userId);
         bundle.putString("argument", "currencySubscriptionCancelledError");
 
         ResponseDialogs dialog = new ResponseDialogs();

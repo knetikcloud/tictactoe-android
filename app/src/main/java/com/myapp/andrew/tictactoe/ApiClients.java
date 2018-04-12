@@ -8,7 +8,6 @@ import com.knetikcloud.client.auth.OAuthFlow;
 
 public class ApiClients {
 
-    private static ApiClient adminClientInstance = null;
     private static ApiClient userClientInstance = null;
 
     protected ApiClients() {
